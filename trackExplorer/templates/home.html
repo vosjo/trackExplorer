@@ -9,7 +9,34 @@
   </head>
   <body>
     <div class=page>
-      <h1>The iris dataset and Bokeh</h1>
+      <h1>MESA Track explorer</h1>
+      
+      <form action="/">
+      <label>X-parameter: </label>
+      <select name="xpar">
+         {% for feature in parameters %}
+            {% if feature == current_xpar %}
+               <option selected value="{{ feature }}">{{ feature }}</option> 
+            {% else %} 
+               <option value="{{ feature }}">{{ feature }}</option> 
+            {% endif %}
+         {% endfor %}
+      </select>
+      
+      <label>Y-parameter: </label>
+      <select name="ypar">
+         {% for feature in parameters %}
+            {% if feature == current_ypar %}
+               <option selected value="{{ feature }}">{{ feature }}</option> 
+            {% else %} 
+               <option value="{{ feature }}">{{ feature }}</option> 
+            {% endif %}
+         {% endfor %}
+      </select>
+      
+      <input type="submit">
+      </form>
+      
       {{ div | safe }}
     </div>
   </body>
