@@ -1,43 +1,21 @@
- 
+
 <html>
-  <head>
-    <!-- <link rel="stylesheet" href='{ url_for('static', filename='style.css')}' type="text/css" /> -->
+<head>
+   <!-- <link rel="stylesheet" href='{ url_for('static', filename='style.css')}' type="text/css" /> -->
 <!--     <link rel="stylesheet" href="//cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.css" type="text/css" /> -->
-    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
+   <script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
+   <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-1.4.0.min.js"></script>
 <!--     <script type="text/javascript" src="//cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.js"></script> -->
-  {{ script | safe }}
-  </head>
-  <body>
+{{ script | safe }}
+</head>
+<body>
     <div class=page>
-      <h1>MESA Track explorer</h1>
+        <h1>MESA Track explorer</h1>
+        
+        <div>
+        {{ figure | safe }}
+        </div>
       
-      <form action="/">
-      <label>X-parameter: </label>
-      <select name="xpar">
-         {% for feature in parameters %}
-            {% if feature == current_xpar %}
-               <option selected value="{{ feature }}">{{ feature }}</option> 
-            {% else %} 
-               <option value="{{ feature }}">{{ feature }}</option> 
-            {% endif %}
-         {% endfor %}
-      </select>
-      
-      <label>Y-parameter: </label>
-      <select name="ypar">
-         {% for feature in parameters %}
-            {% if feature == current_ypar %}
-               <option selected value="{{ feature }}">{{ feature }}</option> 
-            {% else %} 
-               <option value="{{ feature }}">{{ feature }}</option> 
-            {% endif %}
-         {% endfor %}
-      </select>
-      
-      <input type="submit">
-      </form>
-      
-      {{ div | safe }}
-    </div>
-  </body>
+   </div>
+</body>
 </html>
