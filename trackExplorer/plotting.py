@@ -9,6 +9,8 @@ from bokeh.layouts import gridplot, row, column, layout, widgetbox, Spacer
 
 def make_summary_plot(source, pars_dict):
     
+    tools = "pan,wheel_zoom,box_zoom,box_select,tap,hover,reset,crosshair"
+    
     cmin, cmax = 0, 1
     cpallet = Dark2[8]
     
@@ -31,7 +33,7 @@ def make_summary_plot(source, pars_dict):
     
     # Left Figure
     
-    p1 = figure(x_axis_label=pars_dict['x1'], y_axis_label=pars_dict['y1'])
+    p1 = figure(x_axis_label=pars_dict['x1'], y_axis_label=pars_dict['y1'], active_drag='box_select', tools=tools)
     
     color_mapper = mpl.LinearColorMapper(cpallet, low=cmin, high=cmax)
     
@@ -45,7 +47,7 @@ def make_summary_plot(source, pars_dict):
     
     # Right Figure
     
-    p2 = figure(x_axis_label=pars_dict['x2'], y_axis_label=pars_dict['y2'])
+    p2 = figure(x_axis_label=pars_dict['x2'], y_axis_label=pars_dict['y2'], active_drag='box_select', tools=tools)
     
     color_mapper = mpl.LinearColorMapper(cpallet, low=cmin, high=cmax)
     
@@ -59,6 +61,11 @@ def make_summary_plot(source, pars_dict):
     
     plot = gridplot([[p1,p2]])
     
+    # add interaction when selecting a model
+    callback = CustomJS(args=dict(source=source), code="""selected_indices = source.selected.indices;""")
+    p1.js_on_event('tap', callback)
+    p2.js_on_event('tap', callback)
+    
     return plot, p1, p2
 
 
@@ -68,6 +75,7 @@ def make_summary_controls(source, p1, p2, pars_dict, select_options):
         var data = source.data;
         var parname = cb_obj.value;
         data[axisname] = data[parname];
+        summary_pars[axisname] = parname; //store the parameter name in a global variable
         axis.axis_label = parname;
         source.change.emit();
     """
@@ -145,6 +153,7 @@ def make_history_controls(source, pars_dict, select_options):
         var data = source.data;
         var parname = cb_obj.value;
         data[axisname] = data[parname];
+        history_pars[axisname] = parname; //store the parameter name in a global variable
         source.change.emit();
     """
     

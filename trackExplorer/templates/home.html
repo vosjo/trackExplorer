@@ -1,8 +1,27 @@
 
 <html>
 <head>
-   <!-- <link rel="stylesheet" href='{ url_for('static', filename='style.css')}' type="text/css" /> -->
-<!--     <link rel="stylesheet" href="//cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.css" type="text/css" /> -->
+   
+   <script>
+   // Define some global variables
+   var summary_pars = {'x1': '',
+                     'y1': '',
+                     'x2': '',
+                     'y2': '',
+                     };
+                  
+   var history_pars = {'x': '',
+                     'y1': '',
+                     'y2': '',
+                     'y3': '',
+                     'y4': '',
+                     'y5': '',
+                     'y6': '',
+                     };
+                     
+   var selected_indices = [];
+   </script>
+   
    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-1.4.0.min.js"></script>
 <!--     <script type="text/javascript" src="//cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.js"></script> -->
