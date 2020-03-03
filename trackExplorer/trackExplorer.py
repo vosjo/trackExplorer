@@ -16,8 +16,8 @@ from trackExplorer.fileio import read_history
 app = Flask(__name__)
 
 #Get the data, from somewhere
-df = pd.read_csv('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BesanconLargeNew1.csv')
-columns = df.columns.values.tolist()
+summary_df = pd.read_csv('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BesanconLargeNew1.csv')
+columns = summary_df.columns.values.tolist()
 
 start_pars = {'x1': 'M1',
               'y1': 'qinit',
@@ -35,33 +35,27 @@ history_pars = {'x': 'model_number',
                 'y5': 'R1_div_a',
                 'y6': 'log10_J_div_Jdot_div_P',}
 
-df['x1'] = df[start_pars['x1']]
-df['y1'] = df[start_pars['y1']]
-df['color1'] = df[start_pars['color1']]
-df['x2'] = df[start_pars['x2']]
-df['y2'] = df[start_pars['y2']]
-df['color2'] = df[start_pars['color2']]
+for  par in start_pars.keys():
+    summary_df[par] = summary_df[start_pars[par]]
 
-source = ColumnDataSource(data=df)
 
-evolution_source = None
+evolution_df = None
 evolution_columns = []
 
 def read_evolution_model(url):
-   
-   global evolution_source, evolution_columns
-   
-   filename, _ = urllib.request.urlretrieve(url)
-   
-   data = read_history(filename)
-   data = pd.DataFrame(data)
-   
-   for par in history_pars.keys():
-      data[par] = data[history_pars[par]]
-   
-   
-   evolution_source = ColumnDataSource(data=data)
-   evolution_columns = data.columns.values.tolist()
+
+    global evolution_columns, evolution_df
+
+    filename, _ = urllib.request.urlretrieve(url)
+
+    data = read_history(filename)
+    data = pd.DataFrame(data)
+
+    for par in history_pars.keys():
+        data[par] = data[history_pars[par]]
+
+    evolution_df = data
+    evolution_columns = data.columns.values.tolist()
 
 read_evolution_model('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BesanconLarge_hdf5/M0.851_M0.842_P234.84_Z0.0005.hdf5')
 
@@ -69,6 +63,10 @@ read_evolution_model('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData
 
 @app.route('/')
 def homepage():
+   
+    # get the data sources
+    source = ColumnDataSource(data=summary_df)
+    evolution_source = ColumnDataSource(data=evolution_df)
       
     #Setup plot    
     plot, p1, p2 = make_summary_plot(source, start_pars)
