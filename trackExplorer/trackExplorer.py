@@ -9,8 +9,8 @@ from bokeh.models import ColumnDataSource
 from bokeh.embed import components
 from bokeh.layouts import layout
 
-from plotting import make_summary_plot, make_summary_controls, make_history_plots, make_history_controls
-from fileio import read_history
+from trackExplorer.plotting import make_summary_plot, make_summary_controls, make_history_plots, make_history_controls
+from trackExplorer.fileio import read_history
 
 #Connect the app
 app = Flask(__name__)
