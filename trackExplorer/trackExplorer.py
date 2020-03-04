@@ -27,8 +27,8 @@ columns = summary_df.columns.values.tolist()
 start_pars = {'x1': 'M1',
               'y1': 'qinit',
               'color1': 'FeHinit',
-              'x2': 'Zinit', 
-              'y2': 'Pinit_frac',
+              'x2': 'M1',
+              'y2': 'Pinit',
               'color2': 'M1',
             }
 
