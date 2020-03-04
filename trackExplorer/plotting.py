@@ -69,7 +69,7 @@ def make_summary_plot(source, pars_dict):
     return plot, p1, p2
 
 
-def make_summary_controls(source, p1, p2, pars_dict, select_options):
+def make_summary_controls(source, history_source, p1, p2, pars_dict, select_options):
 
     calbackcode = """
         var data = source.data;
@@ -98,8 +98,40 @@ def make_summary_controls(source, p1, p2, pars_dict, select_options):
     color2 = Select(title='Color 2', value=pars_dict['color2'], options=select_options)
     #color2.on_change('value', update)
 
+    update_source = CustomJS(args=dict(summary_source=source, history_source=history_source), code="""
+        if (selected_indices.length == 0){
+            filename = '';
+        } else {
+            filename = summary_source.data['filename'][selected_indices[0]];
+        }
+        
+        $.ajax({
+        url : "/history", 
+        type : "POST",
+        data: JSON.stringify({
+        filename: filename,
+        history_pars: history_pars,
+        }),
+        dataType: "json",
+        success : function(json) {
+            console.log(json)
+            console.log(history_source.data)
+            
+            for (var key in json) {
+                history_source.data[key] = new Float64Array(json[key])
+            }
+            
+            console.log(history_source.data)
+            history_source.change.emit();
+        },
+        error : function(xhr,errmsg,err) {
+            console.log(xhr.status + ": " + xhr.responseText);
+        },
+        }); 
+        """)
+    
     button = Button(label="Plot selected", button_type="success")
-    #button.on_click(plot_selected_history)
+    button.js_on_click(update_source)
 
 
     # create sumary plots
@@ -131,29 +163,33 @@ def make_history_plots(source, pars_dict):
         p.circle('x', ypar, source=source, size=0)
         
         return p
-        
+
+    figures = {}
     topline = []
     for ypar in ['y1', 'y2', 'y3']:
         p = make_figure(ypar)
+        figures[ypar] = p
         topline.append(p)
         
         
     botline = []
     for ypar in ['y4', 'y5', 'y6']:
         p = make_figure(ypar)
+        figures[ypar] = p
         botline.append(p)
     
     history_plots = gridplot([topline, botline])
     
-    return history_plots
+    return history_plots, figures
 
-def make_history_controls(source, pars_dict, select_options):
+def make_history_controls(source, pars_dict, select_options, figures):
     
     calbackcode = """
         var data = source.data;
         var parname = cb_obj.value;
         data[axisname] = data[parname];
         history_pars[axisname] = parname; //store the parameter name in a global variable
+        axis.axis_label = parname;
         source.change.emit();
     """
     
@@ -165,7 +201,8 @@ def make_history_controls(source, pars_dict, select_options):
     
     for i in range(1,7):
         yc = Select(title='Y-Axis '+str(i), value=pars_dict['y'+str(i)], options=select_options)
-        yc.js_on_change('value', CustomJS(args=dict(source=source, axisname='y'+str(i)), code=calbackcode))
+        yc.js_on_change('value', CustomJS(args=dict(source=source, axisname='y'+str(i), axis=figures['y'+str(i)].yaxis[0]),
+                                          code=calbackcode))
         
         controls['y'+str(i)] = yc
         

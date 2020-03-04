@@ -9,23 +9,25 @@
                      'x2': '',
                      'y2': '',
                      };
-                  
-   var history_pars = {'x': '',
-                     'y1': '',
-                     'y2': '',
-                     'y3': '',
-                     'y4': '',
-                     'y5': '',
-                     'y6': '',
-                     };
+
+    {#'x': '',#}
+    {#'y1': '',#}
+    {#'y2': '',#}
+    {#'y3': '',#}
+    {#'y4': '',#}
+    {#'y5': '',#}
+    {#'y6': '',#}
+
+   var history_pars = {};
                      
    var selected_indices = [];
    </script>
-   
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-1.4.0.min.js"></script>
-<!--     <script type="text/javascript" src="//cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.js"></script> -->
-{{ script | safe }}
+   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.4.0.min.js"></script>
+   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-api-1.4.0.min.js"></script>
+   {{ script | safe }}
 </head>
 <body>
     <div class=page>

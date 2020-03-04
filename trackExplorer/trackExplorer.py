@@ -1,7 +1,7 @@
  
 #Load the packages
 import pandas as pd
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 
 import urllib
 
@@ -9,14 +9,19 @@ from bokeh.models import ColumnDataSource
 from bokeh.embed import components
 from bokeh.layouts import layout
 
-from trackExplorer.plotting import make_summary_plot, make_summary_controls, make_history_plots, make_history_controls
-from trackExplorer.fileio import read_history
+# added try catch to allow local running of the code without heroku
+try:
+    from trackExplorer.plotting import make_summary_plot, make_summary_controls, make_history_plots, make_history_controls
+    from trackExplorer.fileio import read_history
+except:
+    from plotting import make_summary_plot, make_summary_controls, make_history_plots, make_history_controls
+    from fileio import read_history
 
 #Connect the app
 app = Flask(__name__)
 
 #Get the data, from somewhere
-summary_df = pd.read_csv('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BesanconLargeNew1.csv')
+summary_df = pd.read_csv('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BPS_shortP_Potsdam_4_J_div_Jdot_div_P_10.csv')
 columns = summary_df.columns.values.tolist()
 
 start_pars = {'x1': 'M1',
@@ -42,7 +47,8 @@ for  par in start_pars.keys():
 evolution_df = None
 evolution_columns = []
 
-def read_evolution_model(url):
+
+def read_evolution_model(url, history_pars):
 
     global evolution_columns, evolution_df
 
@@ -57,7 +63,29 @@ def read_evolution_model(url):
     evolution_df = data
     evolution_columns = data.columns.values.tolist()
 
-read_evolution_model('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BesanconLarge_hdf5/M0.851_M0.842_P234.84_Z0.0005.hdf5')
+read_evolution_model('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BPS_shortP_Potsdam_4_hdf5/M2.643_M1.013_P28.40_Z0.00420.hdf5',
+                     history_pars=history_pars)
+
+
+@app.route('/history', methods=['POST'])
+def history_data():
+    # returns JSON data when requested. Used to update datasource with ajax
+
+    data = request.get_json(force=True)
+    filename = data.get('filename')
+    updated_pars = data.get('history_pars')
+
+    url = 'http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/'+filename
+
+    new_pars = history_pars.copy()
+    new_pars.update(updated_pars)
+    read_evolution_model(url, history_pars=new_pars)
+
+    data_dict = {}
+    for col in evolution_df.columns.values.tolist():
+        data_dict[col] = evolution_df[col].values.tolist()
+
+    return jsonify(data_dict)
 
 
 
@@ -70,10 +98,10 @@ def homepage():
       
     #Setup plot    
     plot, p1, p2 = make_summary_plot(source, start_pars)
-    controls, control_dict = make_summary_controls(source, p1, p2, start_pars, columns)
+    controls, control_dict = make_summary_controls(source, evolution_source, p1, p2, start_pars, columns)
     
-    history_plots = make_history_plots(evolution_source, history_pars)
-    history_controls = make_history_controls(evolution_source, history_pars, evolution_columns)
+    history_plots, figures = make_history_plots(evolution_source, history_pars)
+    history_controls = make_history_controls(evolution_source, history_pars, evolution_columns, figures)
     
     #create layout
     summary_plot = layout([[plot, controls]])
