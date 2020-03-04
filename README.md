@@ -5,4 +5,4 @@ using Flask and Bokeh for the plotting.
 
 An online instance is running on Heroku here: https://sheltered-wave-29753.herokuapp.com/
 
-![trackexplorer_screenshot](https://raw.githubusercontent.com/vosjo/trackExplorer/master/docs/trackexplorer_app.png)
+![trackexplorer_screenshot](docs/trackexplorer_app.png)
