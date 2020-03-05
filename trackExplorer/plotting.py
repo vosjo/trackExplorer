@@ -154,6 +154,32 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
 
     return controls, control_dict
 
+def make_HR_diagram(source):
+    tools = "pan,wheel_zoom,box_zoom,box_select,hover,reset,crosshair"
+
+    xpar = 'log_Teff'
+    ypar = 'log_g'
+
+    p = figure(plot_height=500, plot_width=500, tools=tools, title='HR diagram',
+               x_axis_label=xpar, y_axis_label=ypar)
+    p.title.align = 'center'
+    p.outline_line_width = 3
+    p.outline_line_alpha = 0.3
+
+    p.line(xpar, ypar, color='blue', source=source, legend_label='primary')
+    p.circle(xpar, ypar, color='blue', source=source, size=0, legend_label='primary')
+
+    p.line(xpar+'_2', ypar+'_2', color='red', source=source, legend_label='secondary')
+    p.circle(xpar+'_2', ypar+'_2', color='red', source=source, size=0, legend_label='secondary')
+
+    p.x_range.flipped = True
+    p.y_range.flipped = True
+
+    p.legend.location = "top_left"
+    p.legend.click_policy = "hide"
+
+    return p
+
 def make_center_track(source):
 
     tools = "pan,wheel_zoom,box_zoom,box_select,hover,reset,crosshair"
@@ -164,11 +190,11 @@ def make_center_track(source):
     p.outline_line_width = 3
     p.outline_line_alpha = 0.3
 
-    p.line('log_center_Rho', 'log_center_T', color='blue', source=source, legend='primary')
-    p.circle('log_center_Rho', 'log_center_T', color='blue', source=source, size=0, legend='primary')
+    p.line('log_center_Rho', 'log_center_T', color='blue', source=source, legend_label='primary')
+    p.circle('log_center_Rho', 'log_center_T', color='blue', source=source, size=0, legend_label='primary')
 
-    p.line('log_center_Rho_2', 'log_center_T_2', color='red', source=source, legend='secondary')
-    p.circle('log_center_Rho_2', 'log_center_T_2', color='red', source=source, size=0, legend='secondary')
+    p.line('log_center_Rho_2', 'log_center_T_2', color='red', source=source, legend_label='secondary')
+    p.circle('log_center_Rho_2', 'log_center_T_2', color='red', source=source, size=0, legend_label='secondary')
 
     p.line(HIgnition['rho'], HeIgnition['T'], line_dash='dotted', color='black')
     p.line(HeIgnition['rho'], HeIgnition['T'], line_dash='dotted', color='black')
@@ -188,6 +214,9 @@ def make_center_track(source):
     p.add_layout(he_label)
     p.add_layout(o_label)
     p.add_layout(e_label)
+
+    p.legend.location = "top_left"
+    p.legend.click_policy = "hide"
 
     return p
 
