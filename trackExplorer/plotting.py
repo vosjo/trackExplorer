@@ -2,20 +2,19 @@
 from bokeh import models as mpl
 from bokeh.models import CustomJS, Select, Button, CheckboxGroup
 from bokeh.transform import linear_cmap, factor_cmap, factor_mark, transform
-from bokeh.palettes import Spectral11, Set1, Category10, Dark2, Inferno256, RdBu
 from bokeh.plotting import figure
 from bokeh.layouts import gridplot, row, column, layout, widgetbox, Spacer
 
+from pathlib import Path
 import pandas as pd
 
+base_path = Path(__file__).parent
+
 # boundaries
-edegeneracy = pd.read_csv('plot_info/kap_rad_cond_eq.data', sep='\s+', names=['rho', 'T'])
-
-HIgnition = pd.read_csv('plot_info/hydrogen_burn.data', sep='\s+', names=['rho', 'T'])
-
-HeIgnition = pd.read_csv('plot_info/helium_burn.data', sep='\s+', names=['rho', 'T'])
-
-OIgnition = pd.read_csv('plot_info/carbon_burn.data', sep='\s+', names=['rho', 'T'])
+edegeneracy = pd.read_csv(base_path / 'plot_info/kap_rad_cond_eq.data', sep='\s+', names=['rho', 'T'])
+HIgnition = pd.read_csv(base_path / 'plot_info/hydrogen_burn.data', sep='\s+', names=['rho', 'T'])
+HeIgnition = pd.read_csv(base_path / 'plot_info/helium_burn.data', sep='\s+', names=['rho', 'T'])
+OIgnition = pd.read_csv(base_path / 'plot_info/carbon_burn.data', sep='\s+', names=['rho', 'T'])
 
 
 def make_summary_plot(source, pars_dict):
@@ -146,10 +145,8 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
 
     control_dict = {"x1": x1,
                     "y1": y1,
-                    # "color1": color1,
                     "x2": x2,
                     "y2": y2,
-                    # "color2": color2,
                     }
 
     return controls, control_dict
