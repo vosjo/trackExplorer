@@ -11,10 +11,10 @@ from bokeh.layouts import layout
 
 # added try catch to allow local running of the code without heroku
 try:
-    from trackExplorer.plotting import make_summary_plot, make_summary_controls, make_history_plots, make_history_controls
+    from trackExplorer import plotting
     from trackExplorer.fileio import read_history
 except:
-    from plotting import make_summary_plot, make_summary_controls, make_history_plots, make_history_controls
+    import plotting
     from fileio import read_history
 
 #Connect the app
@@ -96,23 +96,25 @@ def homepage():
     source = ColumnDataSource(data=summary_df)
     evolution_source = ColumnDataSource(data=evolution_df)
       
-    #Setup plot    
-    plot, p1, p2 = make_summary_plot(source, start_pars)
-    controls, control_dict = make_summary_controls(source, evolution_source, p1, p2, start_pars, columns)
+    # Setup plot
+    plot, p1, p2 = plotting.make_summary_plot(source, start_pars)
+    controls, control_dict = plotting.make_summary_controls(source, evolution_source, p1, p2, start_pars, columns)
+
+    center_plot = plotting.make_center_track(evolution_source)
+
+    history_plots, figures = plotting.make_history_plots(evolution_source, history_pars)
+    history_controls = plotting.make_history_controls(evolution_source, history_pars, evolution_columns, figures)
     
-    history_plots, figures = make_history_plots(evolution_source, history_pars)
-    history_controls = make_history_controls(evolution_source, history_pars, evolution_columns, figures)
-    
-    #create layout
+    # create layout
     summary_plot = layout([[plot, controls]])
     
     history_plot = layout([[history_controls], [history_plots]])
     
-    script, div = components((summary_plot, history_plot))
+    script, div = components((summary_plot, center_plot, history_plot))
 
-    #Render the page
-    return render_template('home.html', script=script, summary_div=div[0], history_div=div[1])    
+    # Render the page
+    return render_template('home.html', script=script, summary_div=div[0], hr_div=div[1], history_div=div[2])
 
 
 if __name__ == '__main__':
-    app.run(debug=True) #Set to false when deploying
+    app.run(debug=True) # Set to false when deploying

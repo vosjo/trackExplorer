@@ -6,6 +6,17 @@ from bokeh.palettes import Spectral11, Set1, Category10, Dark2, Inferno256, RdBu
 from bokeh.plotting import figure
 from bokeh.layouts import gridplot, row, column, layout, widgetbox, Spacer
 
+import pandas as pd
+
+# boundaries
+edegeneracy = pd.read_csv('plot_info/kap_rad_cond_eq.data', sep='\s+', names=['rho', 'T'])
+
+HIgnition = pd.read_csv('plot_info/hydrogen_burn.data', sep='\s+', names=['rho', 'T'])
+
+HeIgnition = pd.read_csv('plot_info/helium_burn.data', sep='\s+', names=['rho', 'T'])
+
+OIgnition = pd.read_csv('plot_info/carbon_burn.data', sep='\s+', names=['rho', 'T'])
+
 
 def make_summary_plot(source, pars_dict):
     
@@ -143,6 +154,42 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
 
     return controls, control_dict
 
+def make_center_track(source):
+
+    tools = "pan,wheel_zoom,box_zoom,box_select,hover,reset,crosshair"
+
+    p = figure(plot_height=500, plot_width=500, tools=tools, title='Central properties',
+                   x_axis_label='log_center_Rho', y_axis_label='log_center_T')
+    p.title.align = 'center'
+    p.outline_line_width = 3
+    p.outline_line_alpha = 0.3
+
+    p.line('log_center_Rho', 'log_center_T', color='blue', source=source, legend='primary')
+    p.circle('log_center_Rho', 'log_center_T', color='blue', source=source, size=0, legend='primary')
+
+    p.line('log_center_Rho_2', 'log_center_T_2', color='red', source=source, legend='secondary')
+    p.circle('log_center_Rho_2', 'log_center_T_2', color='red', source=source, size=0, legend='secondary')
+
+    p.line(HIgnition['rho'], HeIgnition['T'], line_dash='dotted', color='black')
+    p.line(HeIgnition['rho'], HeIgnition['T'], line_dash='dotted', color='black')
+    p.line(OIgnition['rho'], OIgnition['T'], line_dash='dotted', color='black')
+    p.line(edegeneracy['rho'], edegeneracy['T'], line_dash='dotted', color='black')
+
+    h_label = mpl.Label(x=HIgnition['rho'][0], y=HeIgnition['T'][0], text='H',
+                       render_mode='css', text_font_size='10pt')
+    he_label = mpl.Label(x=HeIgnition['rho'][0], y=HeIgnition['T'][0], text='He', render_mode='css',
+                        text_font_size='10pt', x_offset=5, y_offset=-5)
+    o_label = mpl.Label(x=OIgnition['rho'][0], y=OIgnition['T'][0], text='O', render_mode='css',
+                       text_font_size='10pt', x_offset=5, y_offset=-5)
+    e_label = mpl.Label(x=edegeneracy['rho'][0], y=edegeneracy['T'][0], text='e-deg.', render_mode='css',
+                       text_font_size='10pt', x_offset=5, y_offset=-5)
+
+    p.add_layout(h_label)
+    p.add_layout(he_label)
+    p.add_layout(o_label)
+    p.add_layout(e_label)
+
+    return p
 
 def make_history_plots(source, pars_dict):
     
