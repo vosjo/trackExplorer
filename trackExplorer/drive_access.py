@@ -9,7 +9,7 @@ from googleapiclient.http import MediaIoBaseDownload
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
-SERVICE_ACCOUNT_FILE = 'trackexplorer-270111-6a2016e424ee.json'
+SERVICE_ACCOUNT_FILE = 'google-credentials.json'
 
 credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
