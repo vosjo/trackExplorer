@@ -5,20 +5,23 @@ from flask import Flask, render_template, request, jsonify
 
 import urllib
 
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, Select
 from bokeh.embed import components
 from bokeh.layouts import layout, gridplot
 
 # added try catch to allow local running of the code without heroku
 try:
-    from trackExplorer import plotting
+    from trackExplorer import plotting, drive_access
     from trackExplorer.fileio import read_history
 except:
-    import plotting
+    import plotting, drive_access
     from fileio import read_history
 
 #Connect the app
 app = Flask(__name__)
+
+#Get the grid list
+grid_list = drive_access.grid_list
 
 #Get the data, from somewhere
 summary_df = pd.read_csv('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BPS_shortP_Potsdam_4_J_div_Jdot_div_P_10.csv')
@@ -95,6 +98,9 @@ def homepage():
     # get the data sources
     source = ColumnDataSource(data=summary_df)
     evolution_source = ColumnDataSource(data=evolution_df)
+    
+    # make the grid selector
+    grids_selector = Select(title='Available Grids:', value=grid_list['name'].values.tolist()[0], options=grid_list['name'].values.tolist())
       
     # Setup plot
     plot, p1, p2 = plotting.make_summary_plot(source, start_pars)
@@ -113,10 +119,10 @@ def homepage():
     
     history_plot = layout([[history_controls], [history_plots]])
     
-    script, div = components((summary_plot, properties_plot, history_plot))
+    script, div = components((grids_selector, summary_plot, properties_plot, history_plot))
 
     # Render the page
-    return render_template('home.html', script=script, summary_div=div[0], properties_div=div[1], history_div=div[2])
+    return render_template('home.html', script=script, grid_selection=div[0], summary_div=div[1], properties_div=div[2], history_div=div[3])
 
 
 if __name__ == '__main__':

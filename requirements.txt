@@ -5,3 +5,6 @@ gunicorn
 h5py
 numpy 
 scipy
+googleapiclient
+google
+io
