@@ -23,9 +23,8 @@ app = Flask(__name__)
 #Get the grid list
 grid_list = drive_access.grid_list
 
-#Get the data, from somewhere
-summary_df = pd.read_csv('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BPS_shortP_Potsdam_4_J_div_Jdot_div_P_10.csv')
-columns = summary_df.columns.values.tolist()
+summary_df, evolution_df = None, None
+columns, evolution_columns = [], []
 
 start_pars = {'x1': 'M1',
               'y1': 'qinit',
@@ -43,31 +42,31 @@ history_pars = {'x': 'model_number',
                 'y5': 'R1_div_a',
                 'y6': 'log10_J_div_Jdot_div_P',}
 
-for  par in start_pars.keys():
-    summary_df[par] = summary_df[start_pars[par]]
+
+def read_summary(gridname, start_pars):
+    global summary_df, columns
+
+    summary_df = drive_access.get_summary_file(gridname)
+    columns = summary_df.columns.values.tolist()
+
+    for par in start_pars.keys():
+        summary_df[par] = summary_df[start_pars[par]]
 
 
-evolution_df = None
-evolution_columns = []
-
-
-def read_evolution_model(url, history_pars):
-
+def read_evolution_model(gridname, filename, history_pars):
     global evolution_columns, evolution_df
 
-    filename, _ = urllib.request.urlretrieve(url)
-
-    data = read_history(filename)
-    data = pd.DataFrame(data)
+    evolution_df = drive_access.get_track(gridname, filename)
 
     for par in history_pars.keys():
-        data[par] = data[history_pars[par]]
+        evolution_df[par] = evolution_df[history_pars[par]]
 
-    evolution_df = data
-    evolution_columns = data.columns.values.tolist()
+    evolution_columns = evolution_df.columns.values.tolist()
 
-read_evolution_model('http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/BPS_shortP_Potsdam_4_hdf5/M2.643_M1.013_P28.40_Z0.00420.hdf5',
-                     history_pars=history_pars)
+
+read_summary(grid_list['name'][0], start_pars)
+filename = summary_df['filename'][0].split('/')[-1]
+read_evolution_model(grid_list['name'][0], filename, history_pars=history_pars)
 
 
 @app.route('/history', methods=['POST'])
@@ -76,13 +75,12 @@ def history_data():
 
     data = request.get_json(force=True)
     filename = data.get('filename')
+    filename = filename.split('/')[-1]
     updated_pars = data.get('history_pars')
-
-    url = 'http://www.astro.physik.uni-potsdam.de/~jorisvos/ModelData/'+filename
 
     new_pars = history_pars.copy()
     new_pars.update(updated_pars)
-    read_evolution_model(url, history_pars=new_pars)
+    read_evolution_model(grid_list['name'][0], filename, history_pars=new_pars)
 
     data_dict = {}
     for col in evolution_df.columns.values.tolist():
