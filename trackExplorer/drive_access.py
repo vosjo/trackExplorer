@@ -40,7 +40,7 @@ def get_drive_IDs(model):
         base_folder_id = pd.NA
 
     # get model folder Id
-    q = "mimeType = 'application/vnd.google-apps.folder' and name = 'Processed_h5'" +\
+    q = "mimeType = 'application/vnd.google-apps.folder' and name = '{}'".format(model['model_folder_name']) +\
         "and '{}' in parents".format(base_folder_id)
     folders = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                    corpora='drive').execute()

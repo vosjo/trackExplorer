@@ -26,12 +26,10 @@ grid_list = drive_access.grid_list
 summary_df, evolution_df = None, None
 columns, evolution_columns = [], []
 
-start_pars = {'x1': 'M1',
-              'y1': 'qinit',
-              'color1': 'FeHinit',
-              'x2': 'M1',
-              'y2': 'Pinit',
-              'color2': 'M1',
+start_pars = {'x1': 'M1_init',
+              'y1': 'q_init',
+              'x2': 'M1_init',
+              'y2': 'P_init',
             }
 
 history_pars = {'x': 'model_number',
@@ -65,7 +63,7 @@ def read_evolution_model(gridname, filename, history_pars):
 
 
 read_summary(grid_list['name'][0], start_pars)
-filename = summary_df['filename'][0].split('/')[-1]
+filename = summary_df['path'][0].split('/')[-1]
 read_evolution_model(grid_list['name'][0], filename, history_pars=history_pars)
 
 

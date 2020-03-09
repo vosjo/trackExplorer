@@ -106,7 +106,7 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
         if (selected_indices.length == 0){
             filename = '';
         } else {
-            filename = summary_source.data['filename'][selected_indices[0]];
+            filename = summary_source.data['path'][selected_indices[0]];
         }
         
         $( "#evolution_header" ).text('Evolution history: ' + filename + ' (loading...)');
