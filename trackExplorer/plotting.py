@@ -109,6 +109,8 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
             filename = summary_source.data['filename'][selected_indices[0]];
         }
         
+        $( "#evolution_header" ).text('Evolution history: ' + filename + ' (loading...)');
+        
         $.ajax({
         url : "/history", 
         type : "POST",
@@ -127,9 +129,13 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
             
             console.log(history_source.data)
             history_source.change.emit();
+            
+            $( "#evolution_header" ).text('Evolution history: ' + filename);
         },
         error : function(xhr,errmsg,err) {
             console.log(xhr.status + ": " + xhr.responseText);
+            
+            $( "#evolution_header" ).text('Evolution history: ' + filename + ' (failed!)');
         },
         }); 
         """)

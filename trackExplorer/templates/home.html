@@ -25,8 +25,8 @@
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-1.4.0.min.js"></script>
-   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.4.0.min.js"></script>
-   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-api-1.4.0.min.js"></script>
+{#   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.4.0.min.js"></script>#}
+{#   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-api-1.4.0.min.js"></script>#}
    {{ script | safe }}
 </head>
 <body>
@@ -44,7 +44,7 @@
         {{ summary_div | safe }}
         </div>
         
-        <h2>Evolutionary history</h2>
+        <h2 id="evolution_header">Evolution history</h2>
 
         <div>
         {{ properties_div | safe }}

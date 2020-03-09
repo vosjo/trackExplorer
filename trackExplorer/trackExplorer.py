@@ -113,7 +113,7 @@ def homepage():
     # create layout
     summary_plot = layout([[plot, controls]])
 
-    properties_plot = gridplot([[hr_plot, center_plot]])
+    properties_plot = gridplot([[hr_plot, center_plot]], toolbar_location='right')
     
     history_plot = layout([[history_controls], [history_plots]])
     
