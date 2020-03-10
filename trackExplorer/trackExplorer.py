@@ -83,6 +83,7 @@ def history_data():
     data_dict = {}
     for col in evolution_df.columns.values.tolist():
         data_dict[col] = evolution_df[col].values.tolist()
+    data_dict['index'] = list(range(len(data_dict[col])))
 
     return jsonify(data_dict)
 

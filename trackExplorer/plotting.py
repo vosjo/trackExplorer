@@ -21,7 +21,7 @@ def make_summary_plot(source, pars_dict):
     
     tools = "pan,wheel_zoom,box_zoom,box_select,tap,hover,reset,crosshair"
 
-    pars = ['M1_init', 'M2_init', 'P_init', 'q_init', 'product']
+    pars = ['M1_init', 'M2_init', 'P_init', 'q_init', 'product', 'stability', 'termination_code']
     basic_tooltip = [(p, '@'+p) for p in pars]
     
     PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA']
