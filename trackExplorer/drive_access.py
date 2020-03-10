@@ -1,5 +1,6 @@
 
 import io
+import os
 import tempfile
 
 import pandas as pd
@@ -106,16 +107,20 @@ def update_grid_list():
 def get_summary_file(gridname):
     global grid_list, driveId
 
-    file_id = grid_list['summary_file_id'][grid_list['name'] == gridname][0]
+    if os.path.isfile('temp/'+gridname):
+        data = pd.read_csv('temp/'+gridname)
 
-    request = service.files().get_media(fileId=file_id)
-    with tempfile.NamedTemporaryFile() as temp:
-        downloader = MediaIoBaseDownload(temp, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
+    else:
+        file_id = grid_list['summary_file_id'][grid_list['name'] == gridname][0]
 
-        data = pd.read_csv(temp.name)
+        request = service.files().get_media(fileId=file_id)
+        with tempfile.NamedTemporaryFile() as temp:
+            downloader = MediaIoBaseDownload(temp, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+
+            data = pd.read_csv(temp.name)
 
     return data
 
@@ -123,23 +128,30 @@ def get_summary_file(gridname):
 def get_track(gridname, filename):
     global grid_list, driveId
 
-    folder_id = grid_list['model_folder_id'][grid_list['name'] == gridname][0]
+    print(gridname, filename)
 
-    # get the fileId of the h5 file
-    files = service.files().list(q="'{}' in parents and name = '{}'".format(folder_id, filename),
-                                 driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
-                                 corpora='drive').execute()
-    file_id = files['files'][0]['id']
-
-    request = service.files().get_media(fileId=file_id)
-    with tempfile.NamedTemporaryFile() as temp:
-        downloader = MediaIoBaseDownload(temp, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-
-        data = read_history(temp.name)
+    if os.path.isfile('temp/'+filename):
+        data = read_history('temp/'+filename)
         data = pd.DataFrame(data)
+
+    else:
+        folder_id = grid_list['model_folder_id'][grid_list['name'] == gridname][0]
+
+        # get the fileId of the h5 file
+        files = service.files().list(q="'{}' in parents and name = '{}'".format(folder_id, filename),
+                                     driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
+                                     corpora='drive').execute()
+        file_id = files['files'][0]['id']
+
+        request = service.files().get_media(fileId=file_id)
+        with tempfile.NamedTemporaryFile() as temp:
+            downloader = MediaIoBaseDownload(temp, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+
+            data = read_history(temp.name)
+            data = pd.DataFrame(data)
 
     return data
 

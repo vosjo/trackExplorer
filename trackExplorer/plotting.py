@@ -1,6 +1,6 @@
 
 from bokeh import models as mpl
-from bokeh.models import CustomJS, Select, Button, CheckboxGroup
+from bokeh.models import CustomJS, Select, Button, CheckboxGroup, TableColumn, StringFormatter, DataTable
 from bokeh.transform import linear_cmap, factor_cmap, factor_mark, transform
 from bokeh.plotting import figure
 from bokeh.layouts import gridplot, row, column, layout, widgetbox, Spacer
@@ -17,7 +17,7 @@ HeIgnition = pd.read_csv(base_path / 'plot_info/helium_burn.data', sep='\s+', na
 OIgnition = pd.read_csv(base_path / 'plot_info/carbon_burn.data', sep='\s+', names=['rho', 'T'])
 
 
-def make_summary_plot(source, pars_dict):
+def make_summary_plot(source, table_source, pars_dict):
     
     tools = "pan,wheel_zoom,box_zoom,box_select,tap,hover,reset,crosshair"
 
@@ -68,7 +68,29 @@ def make_summary_plot(source, pars_dict):
     plot = gridplot([[p1,p2]])
     
     # add interaction when selecting a model
-    callback = CustomJS(args=dict(source=source), code="""selected_indices = source.selected.indices;""")
+    callback = CustomJS(args=dict(summary_source=source, table_source=table_source), code="""
+            selected_indices = summary_source.selected.indices;
+            
+            console.log(summary_source.selected.indices[0]);
+            console.log(summary_source);
+            
+            if (summary_source.selected.indices.length > 0){
+                var data = summary_source.data;
+                var ind = summary_source.selected.indices[0];
+                var parameters = table_source.data['parameters']
+                var values = table_source.data['values']
+                
+                parameters.forEach(function (par, index) {
+                    values[index] = data[par][ind];
+                });
+                
+                //table_source.data['parameters'] = x;
+                table_source.data['values'] = values;
+                
+                table_source.change.emit();
+            }
+            
+            """)
     p1.js_on_event('tap', callback)
     p2.js_on_event('tap', callback)
     
@@ -136,14 +158,16 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
         }); 
         """)
     
-    button = Button(label="Plot selected", button_type="success")
+    button = Button(label="Plot selected track", button_type="success")
     button.js_on_click(update_source)
 
 
     # create sumary plots
-    controls1 = widgetbox(x1, y1, width=300)
-    controls2 = widgetbox(x2, y2, width=300)
-    controls = column([controls1, controls2, button])
+    # controls1 = widgetbox(x1, y1, width=300)
+    # controls2 = widgetbox(x2, y2, width=300)
+    # controls = column([controls1, controls2, button])
+
+    controls = row([x1, y1, x2, y2, button])
 
     control_dict = {"x1": x1,
                     "y1": y1,
@@ -221,6 +245,16 @@ def make_center_track(source):
     p.legend.click_policy = "hide"
 
     return p
+
+
+def make_summary_table(source):
+    columns = [
+        TableColumn(field="parameters", title="Parameter"),#, formatter=StringFormatter()),
+        TableColumn(field="values", title="Value"),#, formatter=StringFormatter()),
+    ]
+    data_table = DataTable(source=source, columns=columns, width=400, height=600)
+
+    return data_table
 
 
 def make_history_plots(source, pars_dict):

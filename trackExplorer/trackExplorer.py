@@ -7,7 +7,7 @@ import urllib
 
 from bokeh.models import ColumnDataSource, Select
 from bokeh.embed import components
-from bokeh.layouts import layout, gridplot
+from bokeh.layouts import layout, gridplot, Spacer
 
 # added try catch to allow local running of the code without heroku
 try:
@@ -95,13 +95,19 @@ def homepage():
     # get the data sources
     source = ColumnDataSource(data=summary_df)
     evolution_source = ColumnDataSource(data=evolution_df)
+    parameters = summary_df.columns.values.tolist()
+    for p in ['x1', 'y1', 'x2', 'y2']:
+        parameters.remove(p)
+    values = [0 for i in parameters]
+    table_source = ColumnDataSource(data={'parameters': parameters, 'values': values})
     
     # make the grid selector
     grids_selector = Select(title='Available Grids:', value=grid_list['name'].values.tolist()[0], options=grid_list['name'].values.tolist())
       
     # Setup plot
-    plot, p1, p2 = plotting.make_summary_plot(source, start_pars)
+    plot, p1, p2 = plotting.make_summary_plot(source, table_source, start_pars)
     controls, control_dict = plotting.make_summary_controls(source, evolution_source, p1, p2, start_pars, columns)
+    table = plotting.make_summary_table(table_source)
 
     hr_plot = plotting.make_HR_diagram(evolution_source)
     center_plot = plotting.make_center_track(evolution_source)
@@ -110,7 +116,8 @@ def homepage():
     history_controls = plotting.make_history_controls(evolution_source, history_pars, evolution_columns, figures)
     
     # create layout
-    summary_plot = layout([[plot, controls]])
+    layout1 = layout([[plot, Spacer(width=40, height=10), table]])
+    summary_plot = layout([[layout1], [controls]])
 
     properties_plot = gridplot([[hr_plot, center_plot]], toolbar_location='right')
     
