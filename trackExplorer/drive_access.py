@@ -111,7 +111,9 @@ def get_summary_file(gridname):
         data = pd.read_csv('temp/'+gridname)
 
     else:
-        file_id = grid_list['summary_file_id'][grid_list['name'] == gridname][0]
+        print(gridname)
+        print(grid_list['summary_file_id'][grid_list['name'] == gridname])
+        file_id = grid_list['summary_file_id'][grid_list['name'] == gridname].iloc[0]
 
         request = service.files().get_media(fileId=file_id)
         with tempfile.NamedTemporaryFile() as temp:
@@ -128,14 +130,12 @@ def get_summary_file(gridname):
 def get_track(gridname, filename):
     global grid_list, driveId
 
-    print(gridname, filename)
-
     if os.path.isfile('temp/'+filename):
         data = read_history('temp/'+filename)
         data = pd.DataFrame(data)
 
     else:
-        folder_id = grid_list['model_folder_id'][grid_list['name'] == gridname][0]
+        folder_id = grid_list['model_folder_id'][grid_list['name'] == gridname].iloc[0]
 
         # get the fileId of the h5 file
         files = service.files().list(q="'{}' in parents and name = '{}'".format(folder_id, filename),

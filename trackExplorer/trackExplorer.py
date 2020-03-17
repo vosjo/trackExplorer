@@ -23,9 +23,6 @@ app = Flask(__name__)
 #Get the grid list
 grid_list = drive_access.grid_list
 
-summary_df, evolution_df = None, None
-columns, evolution_columns = [], []
-
 start_pars = {'x1': 'M1_init',
               'y1': 'q_init',
               'x2': 'M1_init',
@@ -42,7 +39,6 @@ history_pars = {'x': 'model_number',
 
 
 def read_summary(gridname, start_pars):
-    global summary_df, columns
 
     summary_df = drive_access.get_summary_file(gridname)
     columns = summary_df.columns.values.tolist()
@@ -50,9 +46,10 @@ def read_summary(gridname, start_pars):
     for par in start_pars.keys():
         summary_df[par] = summary_df[start_pars[par]]
 
+    return summary_df, columns
+
 
 def read_evolution_model(gridname, filename, history_pars):
-    global evolution_columns, evolution_df
 
     evolution_df = drive_access.get_track(gridname, filename)
 
@@ -61,10 +58,7 @@ def read_evolution_model(gridname, filename, history_pars):
 
     evolution_columns = evolution_df.columns.values.tolist()
 
-
-read_summary(grid_list['name'][0], start_pars)
-filename = summary_df['path'][0].split('/')[-1]
-read_evolution_model(grid_list['name'][0], filename, history_pars=history_pars)
+    return evolution_df, evolution_columns
 
 
 @app.route('/history', methods=['POST'])
@@ -78,10 +72,10 @@ def history_data():
 
     new_pars = history_pars.copy()
     new_pars.update(updated_pars)
-    read_evolution_model(grid_list['name'][0], filename, history_pars=new_pars)
+    evolution_df, evolution_columns = read_evolution_model(grid_list['name'][0], filename, history_pars=new_pars)
 
     data_dict = {}
-    for col in evolution_df.columns.values.tolist():
+    for col in evolution_columns:
         data_dict[col] = evolution_df[col].values.tolist()
     data_dict['index'] = list(range(len(data_dict[col])))
 
@@ -91,7 +85,11 @@ def history_data():
 
 @app.route('/')
 def homepage():
-   
+    gridname = request.args.get('grid', grid_list['name'][0])
+
+    summary_df, summary_columns = read_summary(gridname, start_pars)
+    evolution_df, evolution_columns = read_evolution_model(gridname, summary_df['path'][0].split('/')[-1], history_pars)
+
     # get the data sources
     source = ColumnDataSource(data=summary_df)
     evolution_source = ColumnDataSource(data=evolution_df)
@@ -106,7 +104,7 @@ def homepage():
       
     # Setup plot
     plot, p1, p2 = plotting.make_summary_plot(source, table_source, start_pars)
-    controls, control_dict = plotting.make_summary_controls(source, evolution_source, p1, p2, start_pars, columns)
+    controls, control_dict = plotting.make_summary_controls(source, evolution_source, p1, p2, start_pars, summary_columns)
     table = plotting.make_summary_table(table_source)
 
     hr_plot = plotting.make_HR_diagram(evolution_source)
@@ -123,10 +121,12 @@ def homepage():
     
     history_plot = layout([[history_controls], [history_plots]])
     
-    script, div = components((grids_selector, summary_plot, properties_plot, history_plot))
+    script, div = components((summary_plot, properties_plot, history_plot))
 
     # Render the page
-    return render_template('home.html', script=script, grid_selection=div[0], summary_div=div[1], properties_div=div[2], history_div=div[3])
+    return render_template('home.html',
+                           script=script, summary_div=div[0], properties_div=div[1], history_div=div[2],
+                           grids=grid_list['name'], selected_grid=gridname)
 
 
 if __name__ == '__main__':
