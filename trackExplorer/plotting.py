@@ -341,4 +341,83 @@ def make_history_controls(source, pars_dict, select_options, figures):
     
     controls_history = row([Spacer(width=40, height=10), controls_c1, controls_c2, controls_c3, controls_c4])
     return controls_history
-    
+
+
+def make_comparison_plot(source, pars_dict, titles=['', '']):
+    tools = "pan,wheel_zoom,box_zoom,box_select,tap,hover,reset,crosshair"
+
+    pars = ['M1_init', 'M2_init', 'P_init', 'q_init', 'product', 'stability', 'termination_code']
+    basic_tooltip = [(p, '@' + p) for p in pars]
+
+    PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA']
+    MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle']
+    COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'blue', 'orange']
+    SIZES = [7, 7, 7, 7, 15, 7]
+
+    v_func = """
+    const norm = new Float64Array(xs.length)
+    for (let i = 0; i < xs.length; i++) {
+        if (xs[i] == 'sdB' || xs[i] == 'Fail') {
+                norm[i] = 15
+        } else {
+                norm[i] = 7
+        }
+    }
+    return norm
+    """
+    size_transform = mpl.CustomJSTransform(v_func=v_func)
+
+    # Left Figure
+
+    p1 = figure(x_axis_label=pars_dict['x1'], y_axis_label=pars_dict['y1'], active_drag='box_select',
+                tools=tools, title=titles[0])  # , tooltips=basic_tooltip)
+
+    p1.scatter(x="x1", y="y1", source=source, fill_alpha=0.4,
+               size=transform('product_1', size_transform),
+               color=factor_cmap('product_1', COLORS, PRODUCTS),
+               marker=factor_mark('product_1', MARKERS, PRODUCTS), )
+
+    # Right Figure
+
+    p2 = figure(x_axis_label=pars_dict['x2'], y_axis_label=pars_dict['y2'], active_drag='box_select',
+                tools=tools, title=titles[1])  # , tooltips=basic_tooltip)
+
+    p2.scatter(x="x2", y="y2", source=source, fill_alpha=0.4,
+               size=transform('product_2', size_transform),
+               color=factor_cmap('product_2', COLORS, PRODUCTS),
+               marker=factor_mark('product_2', MARKERS, PRODUCTS), )
+
+    plot = gridplot([[p1, p2]])
+
+    return plot, p1, p2
+
+
+def make_comparison_controls(source, p1, p2, pars_dict, select_options):
+    calbackcode = """
+        var data = source.data;
+        var parname = cb_obj.value;
+        data[axisname+'1'] = data[parname+'_1'];
+        data[axisname+'2'] = data[parname+'_2'];
+        axis1.axis_label = parname;
+        axis2.axis_label = parname;
+        source.change.emit();
+    """
+
+    x1 = Select(title='X-Axis', value=pars_dict['x1'], options=select_options)
+    x1.js_on_change('value', CustomJS(args=dict(source=source, axisname='x', axis1=p1.xaxis[0], axis2=p2.xaxis[0], suffix='_1'), code=calbackcode))
+
+    y1 = Select(title='Y-Axis', value=pars_dict['y1'], options=select_options)
+    y1.js_on_change('value', CustomJS(args=dict(source=source, axisname='y', axis1=p1.yaxis[0], axis2=p2.yaxis[0], suffix='_1'), code=calbackcode))
+
+    # create sumary plots
+    # controls1 = widgetbox(x1, y1, width=300)
+    # controls2 = widgetbox(x2, y2, width=300)
+    # controls = column([controls1, controls2, button])
+
+    controls = row([x1, y1])
+
+    control_dict = {"x1": x1,
+                    "y1": y1,
+                    }
+
+    return controls, control_dict

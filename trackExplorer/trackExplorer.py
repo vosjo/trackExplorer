@@ -130,5 +130,49 @@ def homepage():
                            grids=grid_list['name'], selected_grid=gridname)
 
 
+@app.route('/compare_models')
+def compare_models():
+    grid1 = request.args.get('grid1', grid_list['name'][0])
+    grid2 = request.args.get('grid2', grid_list['name'][1])
+    join = request.args.get('join', 'path')
+
+    grid1_df, columns1 = read_summary(grid1, {})
+    grid2_df, columns2 = read_summary(grid2, {})
+
+    # select only columns available in both grids
+    columns = [value for value in columns1 if value in columns2]
+    grid1_df = grid1_df[columns]
+    grid2_df = grid2_df[columns]
+
+    # merge the dataframes
+    grid_df = pd.merge(grid1_df, grid2_df, how='inner', on=join, suffixes=('_1', '_2'))
+
+    # add the x1, y1, x2 and y2 default columns necessary for the plot to work
+    start_pars = {'x1': 'M1_init_1',
+                  'y1': 'q_init_1',
+                  'x2': 'M1_init_2',
+                  'y2': 'q_init_2',}
+    for par in start_pars.keys():
+        grid_df[par] = grid_df[start_pars[par]]
+
+    source = ColumnDataSource(data=grid_df)
+
+    disp_pars = {'x1': 'M1_init',
+                 'y1': 'q_init',
+                 'x2': 'M1_init',
+                 'y2': 'q_init', }
+
+    plot, p1, p2 = plotting.make_comparison_plot(source, disp_pars, titles=[grid1, grid2])
+    controls, control_dict = plotting.make_comparison_controls(source, p1, p2, disp_pars, columns)
+
+    comparison_plot = layout([[plot], [controls]])
+
+    script, div = components(comparison_plot)
+
+    return render_template('compare_models.html',
+                           grid1=grid1, grid2=grid2, grids=grid_list['name'], join=join, columns=columns,
+                           script=script, comparison_plot=div)
+
+
 if __name__ == '__main__':
     app.run(debug=True) # Set to false when deploying

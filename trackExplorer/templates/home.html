@@ -37,48 +37,51 @@
 
 </head>
 <body>
-    <div class=page>
-        <h1>MESA Track explorer</h1>
 
-        <div>
-        <form action="/" method="GET">
-            <table>
-            <th>
-                <label class="bk">Select a model grid:</label>
-            </th>
-            <th>
-                <select name="grid">
-                    {% for grid in grids %}
-                    {% if grid == selected_grid %}
-                    <option value="{{grid}}" selected>{{ grid }}</option>
-                    {% else %}
-                    <option value="{{grid}}">{{ grid }}</option>
-                    {% endif %}
-                    {% endfor %}
-                </select>
-            </th>
-            <th>
-                <button type="submit">Load grid</button>
-            </th>
-            </table>
-        </form>
-        </div>
+    <div style="display: block; padding-bottom: 20px">
+        <h1 style="display: inline;">MESA Track explorer: Explore tracks</h1>
+        <a href="/">explore tracks</a>
+        <a href="/compare_models">compare grids</a>
+    </div>
 
-        
-        <div>
-        {{ summary_div | safe }}
-        </div>
-        
-        <h2 id="evolution_header">Evolution history</h2>
+    <div>
+    <form action="/" method="GET">
+        <table>
+        <th>
+            <label class="bk">Select a model grid:</label>
+        </th>
+        <th>
+            <select name="grid">
+                {% for grid in grids %}
+                {% if grid == selected_grid %}
+                <option value="{{grid}}" selected>{{ grid }}</option>
+                {% else %}
+                <option value="{{grid}}">{{ grid }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </th>
+        <th>
+            <button type="submit">Load grid</button>
+        </th>
+        </table>
+    </form>
+    </div>
 
-        <div>
-        {{ properties_div | safe }}
-        </div>
-        
-        <div>
-        {{ history_div | safe }}
-        </div>
-      
-   </div>
+
+    <div>
+    {{ summary_div | safe }}
+    </div>
+
+    <h2 id="evolution_header">Evolution history</h2>
+
+    <div>
+    {{ properties_div | safe }}
+    </div>
+
+    <div>
+    {{ history_div | safe }}
+    </div>
+
 </body>
 </html>

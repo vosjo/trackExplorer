@@ -107,8 +107,10 @@ def update_grid_list():
 def get_summary_file(gridname):
     global grid_list, driveId
 
-    if os.path.isfile('temp/'+gridname):
-        data = pd.read_csv('temp/'+gridname)
+    file_name = grid_list['summary_file'][grid_list['name'] == gridname].iloc[0]
+    if os.path.isfile('temp/'+file_name):
+        print('loading local grid: ', file_name)
+        data = pd.read_csv('temp/'+file_name)
 
     else:
         file_id = grid_list['summary_file_id'][grid_list['name'] == gridname].iloc[0]

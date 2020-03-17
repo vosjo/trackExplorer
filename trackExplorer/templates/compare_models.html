@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Compare MESA grids</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-160011552-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-160011552-1');
+    </script>
+
+
+   <script>
+   // Define some global variables
+   var grid1 = "{{grid1}}";
+   var grid2 = "{{grid2}}";
+
+   </script>
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+   <script src="https://cdn.bokeh.org/bokeh/release/bokeh-1.4.0.min.js"></script>
+   <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-1.4.0.min.js"></script>
+   <script src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-1.4.0.min.js"></script>
+{#   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.4.0.min.js"></script>#}
+{#   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-api-1.4.0.min.js"></script>#}
+   {{ script | safe }}
+
+
+</head>
+<body>
+
+    <div style="display: block; padding-bottom: 20px">
+    <h1 style="display: inline;">MESA Track explorer: Compare grids</h1>
+    <a href="/">explore tracks</a>
+    <a href="/compare_models">compare grids</a>
+    </div>
+
+    <div>
+        <form action="/compare_models" method="GET">
+            <table>
+            <th>
+                <label class="bk">Grid 1:</label>
+            </th>
+            <th>
+                <select name="grid1">
+                    {% for grid in grids %}
+                    {% if grid == grid1 %}
+                    <option value="{{grid}}" selected>{{ grid }}</option>
+                    {% else %}
+                    <option value="{{grid}}">{{ grid }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </th>
+            <th>
+                <label class="bk">Grid 2:</label>
+            </th>
+            <th>
+                <select name="grid2">
+                    {% for grid in grids %}
+                    {% if grid == grid2 %}
+                    <option value="{{grid}}" selected>{{ grid }}</option>
+                    {% else %}
+                    <option value="{{grid}}">{{ grid }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </th>
+            <th>
+                <label class="bk">Join on:</label>
+            </th>
+            <th>
+                <select name="join">
+                    {% for col in columns %}
+                    {% if col == join %}
+                    <option value="{{col}}" selected>{{ col }}</option>
+                    {% else %}
+                    <option value="{{col}}">{{ col }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </th>
+            <th>
+                <button type="submit">Compare grids</button>
+            </th>
+            </table>
+        </form>
+    </div>
+
+    <div>
+        {{ comparison_plot | safe }}
+    </div>
+
+
+</body>
+</html>
