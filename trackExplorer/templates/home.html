@@ -23,7 +23,7 @@
                      };
 
    var history_pars = {};
-                     
+   var gridname = "{{selected_grid}}";
    var selected_indices = [];
    </script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -33,100 +33,6 @@
 {#   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.4.0.min.js"></script>#}
 {#   <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-api-1.4.0.min.js"></script>#}
    {{ script | safe }}
-
-    <style>
-    nice-select {
-        background-color: rgb(255, 255, 255);
-        background-image: none;
-        border-bottom-color: rgb(204, 204, 204);
-        border-bottom-left-radius: 4px;
-        border-bottom-right-radius: 4px;
-        border-bottom-style: solid;
-        border-bottom-width: 1px;
-        border-image-outset: 0;
-        border-image-repeat: stretch;
-        border-image-slice: 100%;
-        border-image-source: none;
-        border-image-width: 1;
-        border-left-color: rgb(204, 204, 204);
-        border-left-style: solid;
-        border-left-width: 1px;
-        border-right-color: rgb(204, 204, 204);
-        border-right-style: solid;
-        border-right-width: 1px;
-        border-top-color: rgb(204, 204, 204);
-        border-top-left-radius: 4px;
-        border-top-right-radius: 4px;
-        border-top-style: solid;
-        border-top-width: 1px;
-        box-sizing: border-box;
-        display: block;
-        flex-grow: 1;
-        font-family: Helvetica, Arial, sans-serif;
-        font-size: 13.3333px;
-        line-height: normal;
-        margin-bottom: 0px;
-        margin-left: 0px;
-        margin-right: 0px;
-        margin-top: 0px;
-        min-height: 31px;
-        padding-bottom: 0px;
-        padding-left: 12px;
-        padding-right: 12px;
-        padding-top: 0px;
-        white-space: nowrap;
-        width: 300px;
-    }
-    nice-button {
-        background-color: rgb(92, 184, 92);
-        background-image: none;
-        border-bottom-color: rgb(76, 174, 76);
-        border-bottom-left-radius: 4px;
-        border-bottom-right-radius: 4px;
-        border-bottom-style: solid;
-        border-bottom-width: 1px;
-        border-image-outset: 0;
-        border-image-repeat: stretch;
-        border-image-slice: 100%;
-        border-image-source: none;
-        border-image-width: 1;
-        border-left-color: rgb(76, 174, 76);
-        border-left-style: solid;
-        border-left-width: 1px;
-        border-right-color: rgb(76, 174, 76);
-        border-right-style: solid;
-        border-right-width: 1px;
-        border-top-color: rgb(76, 174, 76);
-        border-top-left-radius: 4px;
-        border-top-right-radius: 4px;
-        border-top-style: solid;
-        border-top-width: 1px;
-        box-sizing: border-box;
-        color: rgb(255, 255, 255);
-        cursor: pointer;
-        display: block;
-        flex-grow: 1;
-        font-family: Helvetica, Arial, sans-serif;
-        font-size: 12px;
-        height: 32px;
-        line-height: 17.15px;
-        margin-bottom: 0px;
-        margin-left: 0px;
-        margin-right: 0px;
-        margin-top: 0px;
-        outline-color: rgb(255, 255, 255);
-        outline-style: none;
-        outline-width: 0px;
-        padding-bottom: 6px;
-        padding-left: 12px;
-        padding-right: 12px;
-        padding-top: 6px;
-        text-align: center;
-        user-select: none;
-        vertical-align: middle;
-        white-space: nowrap;
-    }
-    </style>
 
 
 </head>

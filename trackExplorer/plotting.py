@@ -133,6 +133,7 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
         url : "/history", 
         type : "POST",
         data: JSON.stringify({
+        gridname: gridname,
         filename: filename,
         history_pars: history_pars,
         }),
@@ -196,6 +197,8 @@ def make_HR_diagram(source):
 
     p.line(xpar+'_2', ypar+'_2', color='red', source=source, legend_label='secondary')
     p.circle(xpar+'_2', ypar+'_2', color='red', source=source, size=0, legend_label='secondary')
+
+    p.patch([4.30, 4.60, 4.60, 4.30], [5, 5, 6.5, 6.5], alpha=0.3, color='blue', line_width=0)
 
     p.x_range.flipped = True
     p.y_range.flipped = True

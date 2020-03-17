@@ -111,8 +111,6 @@ def get_summary_file(gridname):
         data = pd.read_csv('temp/'+gridname)
 
     else:
-        print(gridname)
-        print(grid_list['summary_file_id'][grid_list['name'] == gridname])
         file_id = grid_list['summary_file_id'][grid_list['name'] == gridname].iloc[0]
 
         request = service.files().get_media(fileId=file_id)
@@ -141,6 +139,10 @@ def get_track(gridname, filename):
         files = service.files().list(q="'{}' in parents and name = '{}'".format(folder_id, filename),
                                      driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                      corpora='drive').execute()
+
+        if len(files['files']) == 0:
+            print("File {} not found".format(filename))
+            return None
         file_id = files['files'][0]['id']
 
         request = service.files().get_media(fileId=file_id)

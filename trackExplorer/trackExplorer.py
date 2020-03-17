@@ -66,13 +66,14 @@ def history_data():
     # returns JSON data when requested. Used to update datasource with ajax
 
     data = request.get_json(force=True)
+    gridname = data.get('gridname')
     filename = data.get('filename')
     filename = filename.split('/')[-1]
     updated_pars = data.get('history_pars')
 
     new_pars = history_pars.copy()
     new_pars.update(updated_pars)
-    evolution_df, evolution_columns = read_evolution_model(grid_list['name'][0], filename, history_pars=new_pars)
+    evolution_df, evolution_columns = read_evolution_model(gridname, filename, history_pars=new_pars)
 
     data_dict = {}
     for col in evolution_columns:
