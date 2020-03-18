@@ -1,6 +1,6 @@
 
 from bokeh import models as mpl
-from bokeh.models import CustomJS, Select, Button, CheckboxGroup, TableColumn, StringFormatter, DataTable
+from bokeh.models import CustomJS, Select, Button, CheckboxGroup, TableColumn, StringFormatter, DataTable, CDSView, BooleanFilter
 from bokeh.transform import linear_cmap, factor_cmap, factor_mark, transform
 from bokeh.plotting import figure
 from bokeh.layouts import gridplot, row, column, layout, widgetbox, Spacer
@@ -15,6 +15,9 @@ edegeneracy = pd.read_csv(base_path / 'plot_info/kap_rad_cond_eq.data', sep='\s+
 HIgnition = pd.read_csv(base_path / 'plot_info/hydrogen_burn.data', sep='\s+', names=['rho', 'T'])
 HeIgnition = pd.read_csv(base_path / 'plot_info/helium_burn.data', sep='\s+', names=['rho', 'T'])
 OIgnition = pd.read_csv(base_path / 'plot_info/carbon_burn.data', sep='\s+', names=['rho', 'T'])
+
+# Gaia hiparcos sample
+hiparcos = pd.read_csv(base_path / 'plot_info/1Kpc_Hiparchos_sample_cut.csv', sep='\s+')
 
 
 def make_summary_plot(source, table_source, pars_dict):
@@ -159,7 +162,7 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
         }); 
         """)
     
-    button = Button(label="Plot selected track", button_type="success")
+    button = Button(label="Plot selected track", button_type="success", sizing_mode="stretch_width")
     button.js_on_click(update_source)
 
 
@@ -168,7 +171,7 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
     # controls2 = widgetbox(x2, y2, width=300)
     # controls = column([controls1, controls2, button])
 
-    controls = row([x1, y1, x2, y2, button])
+    controls = row([x1, y1, x2, y2])
 
     control_dict = {"x1": x1,
                     "y1": y1,
@@ -176,7 +179,95 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
                     "y2": y2,
                     }
 
-    return controls, control_dict
+    return controls, button, control_dict
+
+
+def make_Gaia_CM_diagram(source, table_source):
+    tools = "pan,wheel_zoom,box_zoom,box_select,tap,hover,reset,crosshair"
+
+    pars = ['M1_init', 'M2_init', 'P_init', 'q_init', 'product', 'stability', 'termination_code']
+    basic_tooltip = [(p, '@' + p) for p in pars]
+
+    PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA']
+    MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle']
+    COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'blue', 'orange']
+    SIZES = [7, 7, 7, 7, 15, 7]
+
+    v_func = """
+        const norm = new Float64Array(xs.length)
+        for (let i = 0; i < xs.length; i++) {
+            if (xs[i] == 'sdB' || xs[i] == 'Fail') {
+                    norm[i] = 15
+            } else {
+                    norm[i] = 7
+            }
+        }
+        return norm
+        """
+    size_transform = mpl.CustomJSTransform(v_func=v_func)
+
+    # Left Figure
+
+    booleans = [True if val != 0 else False for val in source.data['G_HeCoreBurning']]
+    view1 = CDSView(source=source, filters=[BooleanFilter(booleans)])
+
+    p1 = figure(x_axis_label='Gaia BP-RP', y_axis_label='Gaia G mag', active_drag='box_select',
+                tools=tools, tooltips=basic_tooltip, title="HeCoreBurning", y_range=(6,-5))
+
+    p1.circle(hiparcos['bp_rp'], hiparcos['M_g'], size=1, color='gray')
+
+    p1.scatter(x="BP-RP_HeCoreBurning", y="G_HeCoreBurning", source=source, fill_alpha=0.4,
+               size=transform('product', size_transform),
+               color=factor_cmap('product', COLORS, PRODUCTS),
+               marker=factor_mark('product', MARKERS, PRODUCTS),
+               view=view1)
+
+    # Right Figure
+
+    booleans = [True if val != 0 else False for val in source.data['G_MLstart']]
+    view2 = CDSView(source=source, filters=[BooleanFilter(booleans)])
+
+    p2 = figure(x_axis_label='Gaia BP-RP', y_axis_label='Gaia G mag', active_drag='box_select',
+                tools=tools, tooltips=basic_tooltip, title="ML start", y_range=(6,-5))
+
+    p2.circle(hiparcos['bp_rp'], hiparcos['M_g'], size=1, color='gray')
+
+    p2.scatter(x="BP-RP_MLstart", y="G_MLstart", source=source, fill_alpha=0.4,
+               size=transform('product', size_transform),
+               color=factor_cmap('product', COLORS, PRODUCTS),
+               marker=factor_mark('product', MARKERS, PRODUCTS),
+               view=view2)
+
+    plot = gridplot([[p1, p2]])
+
+    # add interaction when selecting a model
+    callback = CustomJS(args=dict(summary_source=source, table_source=table_source), code="""
+                selected_indices = summary_source.selected.indices;
+
+                console.log(summary_source.selected.indices[0]);
+                console.log(summary_source);
+
+                if (summary_source.selected.indices.length > 0){
+                    var data = summary_source.data;
+                    var ind = summary_source.selected.indices[0];
+                    var parameters = table_source.data['parameters']
+                    var values = table_source.data['values']
+
+                    parameters.forEach(function (par, index) {
+                        values[index] = data[par][ind];
+                    });
+
+                    //table_source.data['parameters'] = x;
+                    table_source.data['values'] = values;
+
+                    table_source.change.emit();
+                }
+
+                """)
+    p1.js_on_event('tap', callback)
+    p2.js_on_event('tap', callback)
+
+    return plot, p1, p2
 
 
 def make_HR_diagram(source):

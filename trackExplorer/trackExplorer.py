@@ -8,6 +8,7 @@ import urllib
 from bokeh.models import ColumnDataSource, Select
 from bokeh.embed import components
 from bokeh.layouts import layout, gridplot, Spacer
+from bokeh.models.widgets import Panel, Tabs, Div
 
 # added try catch to allow local running of the code without heroku
 try:
@@ -105,7 +106,8 @@ def homepage():
       
     # Setup plot
     plot, p1, p2 = plotting.make_summary_plot(source, table_source, start_pars)
-    controls, control_dict = plotting.make_summary_controls(source, evolution_source, p1, p2, start_pars, summary_columns)
+    cm_plot, cm_p1, cm_p2 = plotting.make_Gaia_CM_diagram(source, table_source)
+    controls, button, control_dict = plotting.make_summary_controls(source, evolution_source, p1, p2, start_pars, summary_columns)
     table = plotting.make_summary_table(table_source)
 
     hr_plot = plotting.make_HR_diagram(evolution_source)
@@ -115,14 +117,22 @@ def homepage():
     history_controls = plotting.make_history_controls(evolution_source, history_pars, evolution_columns, figures)
     
     # create layout
-    layout1 = layout([[plot, Spacer(width=40, height=10), table]])
-    summary_plot = layout([[layout1], [controls]])
+    # layout1 = layout([[plot, Spacer(width=40, height=10), table]])
+    summary_controls = layout([[plot], [controls]])
+    table_header = Div(text="<h2>Selected Model</h2>", height=40, sizing_mode="stretch_width")
+    table_button = layout([[table_header], [table], [Spacer(width=10, height=20)], [button]])
+
+    tab1 = Panel(child=summary_controls, title="Grid summary")
+    tab2 = Panel(child=cm_plot, title="Gaia Color-Magnitude")
+    tab_plot = Tabs(tabs=[tab1, tab2])
+
+    summary_layout = layout([[tab_plot, Spacer(width=40, height=10), table_button]])
 
     properties_plot = gridplot([[hr_plot, center_plot]], toolbar_location='right')
     
     history_plot = layout([[history_controls], [history_plots]])
     
-    script, div = components((summary_plot, properties_plot, history_plot))
+    script, div = components((summary_layout, properties_plot, history_plot))
 
     # Render the page
     return render_template('home.html',

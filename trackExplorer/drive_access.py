@@ -103,6 +103,8 @@ def update_grid_list():
         grid_list.loc[i, 'model_folder_id'] = model_id
         grid_list.loc[i, 'summary_file_id'] = summary_id
 
+    grid_list.to_csv('grid_list.csv', index=False)
+
 
 def get_summary_file(gridname):
     global grid_list, driveId
