@@ -54,6 +54,12 @@ def read_evolution_model(gridname, filename, history_pars):
 
     evolution_df = drive_access.get_track(gridname, filename)
 
+    if evolution_df is None:
+        keys = ['log_Teff', 'log_Teff_2', 'log_g', 'log_g_2', 'log_center_Rho', 'log_center_Rho_2',
+                'log_center_T', 'log_center_T_2'] + list(history_pars.keys())
+        result = {val: [] for val in keys}
+        return pd.DataFrame(data=result), keys
+
     for par in history_pars.keys():
         evolution_df[par] = evolution_df[history_pars[par]]
 

@@ -6,6 +6,7 @@ import tempfile
 import pandas as pd
 
 from google.oauth2 import service_account
+from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
@@ -33,30 +34,33 @@ def get_drive_IDs(model):
 
     # get base folder Id
     q = "mimeType = 'application/vnd.google-apps.folder' and name = '{}'".format(model['folder_name'])
-    folders = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
+    try:
+        folders = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                    corpora='drive').execute()
-    if len(folders['files']) > 0:
         base_folder_id = folders['files'][0]['id']
-    else:
+    except (HttpError, IndexError) as e:
+        print(e)
         base_folder_id = pd.NA
 
     # get model folder Id
     q = "mimeType = 'application/vnd.google-apps.folder' and name = '{}'".format(model['model_folder_name']) +\
         "and '{}' in parents".format(base_folder_id)
-    folders = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
+    try:
+        folders = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                    corpora='drive').execute()
-    if len(folders['files']) > 0:
         model_folder_id = folders['files'][0]['id']
-    else:
+    except (HttpError, IndexError) as e:
+        print(e)
         model_folder_id = pd.NA
 
     # get summary file Id
-    files = service.files().list(q="'{}' in parents and name = '{}'".format(base_folder_id, model['summary_file']),
+    try:
+        files = service.files().list(q="'{}' in parents and name = '{}'".format(base_folder_id, model['summary_file']),
                                  driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                  corpora='drive').execute()
-    if len(files['files']) > 0:
         summary_file_id = files['files'][0]['id']
-    else:
+    except (HttpError, IndexError) as e:
+        print(e)
         summary_file_id = pd.NA
 
     return base_folder_id, model_folder_id, summary_file_id

@@ -111,6 +111,9 @@ def read_history(objectname, return_profiles=False):
     if not 'rl_overflow_1' in data.dtype.names:
         data = append_fields(data, ['rl_overflow_1'], [data['star_1_radius'] / data['rl_1']], usemask=False)
 
+    if not 'rl_overflow_2' in data.dtype.names:
+        data = append_fields(data, ['rl_overflow_2'], [data['star_2_radius'] / data['rl_2']], usemask=False)
+
     if not 'mass_ratio' in data.dtype.names:
         data = append_fields(data, ['mass_ratio'], [data['star_1_mass'] / data['star_2_mass']], usemask=False)
 
