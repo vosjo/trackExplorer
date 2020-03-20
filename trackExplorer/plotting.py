@@ -124,10 +124,18 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
     y2.js_on_change('value', CustomJS(args=dict(source=source, axisname='y2', axis=p2.yaxis[0]), code=calbackcode))
 
     update_source = CustomJS(args=dict(summary_source=source, history_source=history_source), code="""
+        var folder_name = '';
+        var model_folder_name = '';
         if (selected_indices.length == 0){
             filename = '';
         } else {
             filename = summary_source.data['path'][selected_indices[0]];
+            if ('folder_name' in summary_source.data) {
+                folder_name = summary_source.data['folder_name'][selected_indices[0]];
+            }
+            if ('model_folder_name' in summary_source.data) {
+                model_folder_name = summary_source.data['model_folder_name'][selected_indices[0]];
+            }
         }
         
         $( "#evolution_header" ).text('Evolution history: ' + filename + ' (loading...)');
@@ -136,8 +144,10 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
         url : "/history", 
         type : "POST",
         data: JSON.stringify({
-        gridname: gridname,
-        filename: filename,
+        grid_name: gridname,
+        file_name: filename,
+        folder_name: folder_name,
+        model_folder_name: model_folder_name,
         history_pars: history_pars,
         }),
         dataType: "json",

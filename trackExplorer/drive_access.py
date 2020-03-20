@@ -30,18 +30,26 @@ driveId = None
 grid_list = None
 
 
+def request_from_drive(q):
+    """
+    Basic google drive query that executes q and returns the first file/folder returned by the drive. If nothing is
+    found it returns pd.NA
+
+    @param q: query to run on google drive
+    @return: the id of the first returned file/folder or pd.NA if nothing found
+    """
+    try:
+        query_res = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True,
+                                         supportsAllDrives=True, corpora='drive').execute()
+        result = query_res['files'][0]['id']
+    except (HttpError, IndexError) as e:
+        print(q, '\n--> ', e)
+        result = pd.NA
+
+    return result
+
+
 def get_drive_IDs(model):
-
-    def request_from_drive(q):
-        try:
-            query_res = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True,
-                                             supportsAllDrives=True, corpora='drive').execute()
-            result = query_res['files'][0]['id']
-        except (HttpError, IndexError) as e:
-            print(model, e)
-            result = pd.NA
-
-        return result
 
     # get base folder Id
     q = "mimeType = 'application/vnd.google-apps.folder' and name = '{}'".format(model['folder_name'])
@@ -126,7 +134,7 @@ def get_summary_file(gridname):
     return data
 
 
-def get_track(gridname, filename):
+def get_track(gridname, filename, folder_name=None, model_folder_name=None):
     global grid_list, driveId
 
     if os.path.isfile('temp/'+filename):
@@ -136,7 +144,17 @@ def get_track(gridname, filename):
     else:
         folder_id = grid_list['model_folder_id'][grid_list['name'] == gridname].iloc[0]
 
+        if folder_id is pd.NA and grid_list['model_folder_name'][grid_list['name'] == gridname].iloc[0] == "in_file":
+            # in this case the folder_id is not the same for all models and needs to be obtained from the summary file
+            print(folder_name, model_folder_name)
+            q = "mimeType = 'application/vnd.google-apps.folder' and name = '{}'".format(folder_name)
+            base_folder_id = request_from_drive(q)
+            q = "mimeType = 'application/vnd.google-apps.folder' and name = '{}'".format(model_folder_name) + \
+                "and '{}' in parents".format(base_folder_id)
+            folder_id = request_from_drive(q)
+
         # get the fileId of the h5 file
+        print(folder_id, filename)
         files = service.files().list(q="'{}' in parents and name = '{}'".format(folder_id, filename),
                                      driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                      corpora='drive').execute()

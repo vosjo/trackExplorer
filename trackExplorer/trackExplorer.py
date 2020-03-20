@@ -50,9 +50,10 @@ def read_summary(gridname, start_pars):
     return summary_df, columns
 
 
-def read_evolution_model(gridname, filename, history_pars):
+def read_evolution_model(gridname, filename, history_pars, folder_name=None, model_folder_name=None):
 
-    evolution_df = drive_access.get_track(gridname, filename)
+    evolution_df = drive_access.get_track(gridname, filename,
+                                          folder_name=folder_name, model_folder_name=model_folder_name)
 
     if evolution_df is None:
         keys = ['log_Teff', 'log_Teff_2', 'log_g', 'log_g_2', 'log_center_Rho', 'log_center_Rho_2',
@@ -73,14 +74,17 @@ def history_data():
     # returns JSON data when requested. Used to update datasource with ajax
 
     data = request.get_json(force=True)
-    gridname = data.get('gridname')
-    filename = data.get('filename')
+    gridname = data.get('grid_name')
+    filename = data.get('file_name')
     filename = filename.split('/')[-1]
+    folder_name = data.get('folder_name', None)
+    model_folder_name = data.get('model_folder_name', None)
     updated_pars = data.get('history_pars')
 
     new_pars = history_pars.copy()
     new_pars.update(updated_pars)
-    evolution_df, evolution_columns = read_evolution_model(gridname, filename, history_pars=new_pars)
+    evolution_df, evolution_columns = read_evolution_model(gridname, filename, history_pars=new_pars,
+                                                           folder_name=folder_name, model_folder_name=model_folder_name)
 
     data_dict = {}
     for col in evolution_columns:
@@ -96,7 +100,12 @@ def homepage():
     gridname = request.args.get('grid', grid_list['name'][0])
 
     summary_df, summary_columns = read_summary(gridname, start_pars)
-    evolution_df, evolution_columns = read_evolution_model(gridname, summary_df['path'][0].split('/')[-1], history_pars)
+    folder_name, model_folder_name = None, None
+    if 'folder_name' in summary_columns and 'model_folder_name' in summary_columns:
+        folder_name = summary_df['folder_name'][0]
+        model_folder_name = summary_df['model_folder_name'][0]
+    evolution_df, evolution_columns = read_evolution_model(gridname, summary_df['path'][0].split('/')[-1], history_pars,
+                                                           folder_name=folder_name, model_folder_name=model_folder_name)
 
     # get the data sources
     source = ColumnDataSource(data=summary_df)
