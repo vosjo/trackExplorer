@@ -32,36 +32,29 @@ grid_list = None
 
 def get_drive_IDs(model):
 
+    def request_from_drive(q):
+        try:
+            query_res = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True,
+                                             supportsAllDrives=True, corpora='drive').execute()
+            result = query_res['files'][0]['id']
+        except (HttpError, IndexError) as e:
+            print(model, e)
+            result = pd.NA
+
+        return result
+
     # get base folder Id
     q = "mimeType = 'application/vnd.google-apps.folder' and name = '{}'".format(model['folder_name'])
-    try:
-        folders = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
-                                   corpora='drive').execute()
-        base_folder_id = folders['files'][0]['id']
-    except (HttpError, IndexError) as e:
-        print(e)
-        base_folder_id = pd.NA
+    base_folder_id = request_from_drive(q)
 
     # get model folder Id
     q = "mimeType = 'application/vnd.google-apps.folder' and name = '{}'".format(model['model_folder_name']) +\
         "and '{}' in parents".format(base_folder_id)
-    try:
-        folders = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
-                                   corpora='drive').execute()
-        model_folder_id = folders['files'][0]['id']
-    except (HttpError, IndexError) as e:
-        print(e)
-        model_folder_id = pd.NA
+    model_folder_id = request_from_drive(q)
 
     # get summary file Id
-    try:
-        files = service.files().list(q="'{}' in parents and name = '{}'".format(base_folder_id, model['summary_file']),
-                                 driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
-                                 corpora='drive').execute()
-        summary_file_id = files['files'][0]['id']
-    except (HttpError, IndexError) as e:
-        print(e)
-        summary_file_id = pd.NA
+    q = "'{}' in parents and name = '{}'".format(base_folder_id, model['summary_file'])
+    summary_file_id = request_from_drive(q)
 
     return base_folder_id, model_folder_id, summary_file_id
 
