@@ -1,9 +1,11 @@
+import itertools
 
 from bokeh import models as mpl
 from bokeh.models import CustomJS, Select, Button, CheckboxGroup, TableColumn, StringFormatter, DataTable, CDSView, BooleanFilter
 from bokeh.transform import linear_cmap, factor_cmap, factor_mark, transform
 from bokeh.plotting import figure
 from bokeh.layouts import gridplot, row, column, layout, widgetbox, Spacer
+from bokeh.palettes import Category10
 
 from pathlib import Path
 import pandas as pd
@@ -365,7 +367,13 @@ def make_summary_table(source):
     return data_table
 
 
-def make_history_plots(source, pars_dict):
+def make_history_plots(sources, pars_dict, labels=None):
+
+    if len(sources) > 3:
+        sources = sources[0:3]
+    if labels is None:
+        labels = [str(a) for a in list(range(1,4))]
+    colors = Category10[3]
 
     x_range = None
 
@@ -375,9 +383,13 @@ def make_history_plots(source, pars_dict):
         
         p = figure(plot_height=250, plot_width=500, tooltips=basic_tooltip, tools=tools, 
                    x_axis_label=pars_dict['x'], y_axis_label=pars_dict[ypar], x_range=x_range)
-        
-        p.line('x', ypar, source=source)
-        p.circle('x', ypar, source=source, size=0)
+
+        for source, color, label in zip(sources, colors, labels):
+            if len(sources) > 1:
+                p.line('x', ypar, source=source, color=color, legend_label=label)
+            else:
+                p.line('x', ypar, source=source, color=color)
+            p.circle('x', ypar, source=source, size=0)
         
         return p
 
@@ -400,29 +412,37 @@ def make_history_plots(source, pars_dict):
     
     return history_plots, figures
 
-def make_history_controls(source, pars_dict, select_options, figures):
+def make_history_controls(track_sources, pars_dict, select_options, figures):
     
     calbackcode = """
-        var data = source.data;
         var parname = cb_obj.value;
-        data[axisname] = data[parname];
+        
+        track_sources.forEach(function (source, index) {
+            var data = source.data;
+            data[axisname] = data[parname];
+            source.change.emit();
+        });
+        
         history_pars[axisname] = parname; //store the parameter name in a global variable
         axis.axis_label = parname;
-        source.change.emit();
     """
     
     controls = {}
     xaxes = [figures['y'+str(i)].xaxis[0] for i in range(1,7)]
-    x_callback = CustomJS(args=dict(source=source, axes=xaxes),code="""
-        var data = source.data;
+    x_callback = CustomJS(args=dict(track_sources=track_sources, axes=xaxes),code="""
         var parname = cb_obj.value;
-        data['x'] = data[parname];
+        
+        track_sources.forEach(function (source, index) {
+            var data = source.data;
+            data['x'] = data[parname];
+            source.change.emit();
+        });
+        
         history_pars['x'] = parname; //store the parameter name in a global variable
         // loop over all x axes and update label
         axes.forEach(function (axis, index) {
             axis.axis_label = parname;
         });
-        source.change.emit();
         """)
     
     x1 = Select(title='X-Axis', value=pars_dict['x'], options=select_options)
@@ -431,8 +451,8 @@ def make_history_controls(source, pars_dict, select_options, figures):
     
     for i in range(1,7):
         yc = Select(title='Y-Axis '+str(i), value=pars_dict['y'+str(i)], options=select_options)
-        yc.js_on_change('value', CustomJS(args=dict(source=source, axisname='y'+str(i), axis=figures['y'+str(i)].yaxis[0]),
-                                          code=calbackcode))
+        yc.js_on_change('value', CustomJS(args=dict(track_sources=track_sources, axisname='y'+str(i),
+                                          axis=figures['y'+str(i)].yaxis[0]), code=calbackcode))
         
         controls['y'+str(i)] = yc
         
@@ -492,12 +512,19 @@ def make_comparison_plot(source, pars_dict, titles=['', '']):
                color=factor_cmap('product_2', COLORS, PRODUCTS),
                marker=factor_mark('product_2', MARKERS, PRODUCTS), )
 
+    # add interaction when selecting a model
+    callback = CustomJS(args=dict(summary_source=source), code="""
+                selected_indices = summary_source.selected.indices;
+                """)
+    p1.js_on_event('tap', callback)
+    p2.js_on_event('tap', callback)
+
     plot = gridplot([[p1, p2]])
 
     return plot, p1, p2
 
 
-def make_comparison_controls(source, p1, p2, pars_dict, select_options):
+def make_comparison_controls(source, track_sources, p1, p2, pars_dict, select_options):
     calbackcode = """
         var data = source.data;
         var parname = cb_obj.value;
@@ -514,12 +541,19 @@ def make_comparison_controls(source, p1, p2, pars_dict, select_options):
     y1 = Select(title='Y-Axis', value=pars_dict['y1'], options=select_options)
     y1.js_on_change('value', CustomJS(args=dict(source=source, axisname='y', axis1=p1.yaxis[0], axis2=p2.yaxis[0], suffix='_1'), code=calbackcode))
 
-    # create sumary plots
-    # controls1 = widgetbox(x1, y1, width=300)
-    # controls2 = widgetbox(x2, y2, width=300)
-    # controls = column([controls1, controls2, button])
+    update_source = CustomJS(args=dict(summary_source=source, track_sources=track_sources, ), code="""
+    
+            console.log(summary_source.data);
+            
+            update_source(summary_source, track_sources[0], grid1, '_1')
+            update_source(summary_source, track_sources[1], grid2, '_2')
+            
+            """)
 
-    controls = row([x1, y1])
+    button = Button(label="Plot selected tracks", button_type="success", sizing_mode="stretch_width")
+    button.js_on_click(update_source)
+
+    controls = row([x1, y1, button])
 
     control_dict = {"x1": x1,
                     "y1": y1,
