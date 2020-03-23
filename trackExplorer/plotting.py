@@ -126,56 +126,7 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
     y2.js_on_change('value', CustomJS(args=dict(source=source, axisname='y2', axis=p2.yaxis[0]), code=calbackcode))
 
     update_source = CustomJS(args=dict(summary_source=source, history_source=history_source), code="""
-        var folder_name = '';
-        var model_folder_name = '';
-        if (selected_indices.length == 0){
-            filename = '';
-        } else {
-            filename = summary_source.data['path'][selected_indices[0]];
-            if ('folder_name' in summary_source.data) {
-                folder_name = summary_source.data['folder_name'][selected_indices[0]];
-            }
-            if ('model_folder_name' in summary_source.data) {
-                model_folder_name = summary_source.data['model_folder_name'][selected_indices[0]];
-            }
-        }
-        
-        $( "#evolution_header" ).text('Evolution history: ' + filename + ' (loading...)');
-        
-        $.ajax({
-        url : "/history", 
-        type : "POST",
-        data: JSON.stringify({
-        grid_name: gridname,
-        file_name: filename,
-        folder_name: folder_name,
-        model_folder_name: model_folder_name,
-        history_pars: history_pars,
-        }),
-        dataType: "json",
-        success : function(json) {
-            console.log(json)
-            console.log(history_source.data)
-            
-            for (var key in json) {
-                history_source.data[key] = new Float64Array(json[key])
-            }
-            
-            console.log(history_source.data)
-            history_source.change.emit();
-            
-            if (json['x'].length == 0) {
-                $( "#evolution_header" ).text('Evolution history: ' + filename + ' (not found!)');
-            } else {
-                $( "#evolution_header" ).text('Evolution history: ' + filename);
-            }
-        },
-        error : function(xhr,errmsg,err) {
-            console.log(xhr.status + ": " + xhr.responseText);
-            
-            $( "#evolution_header" ).text('Evolution history: ' + filename + ' (failed!)');
-        },
-        }); 
+        update_source(summary_source, history_source, grid_name, '')
         """)
     
     button = Button(label="Plot selected track", button_type="success", sizing_mode="stretch_width")
@@ -542,9 +493,7 @@ def make_comparison_controls(source, track_sources, p1, p2, pars_dict, select_op
     y1.js_on_change('value', CustomJS(args=dict(source=source, axisname='y', axis1=p1.yaxis[0], axis2=p2.yaxis[0], suffix='_1'), code=calbackcode))
 
     update_source = CustomJS(args=dict(summary_source=source, track_sources=track_sources, ), code="""
-    
-            console.log(summary_source.data);
-            
+                        
             update_source(summary_source, track_sources[0], grid1, '_1')
             update_source(summary_source, track_sources[1], grid2, '_2')
             

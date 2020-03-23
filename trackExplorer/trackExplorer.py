@@ -19,7 +19,7 @@ except:
     from fileio import read_history
 
 #Connect the app
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 #Get the grid list
 grid_list = drive_access.grid_list
