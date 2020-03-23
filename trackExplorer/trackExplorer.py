@@ -50,10 +50,9 @@ def read_summary(gridname, start_pars):
     return summary_df, columns
 
 
+def read_evolution_model(grid_name, filename, history_pars, folder_name=None, model_folder_name=None):
 
-def read_evolution_model(gridname, filename, history_pars, folder_name=None, model_folder_name=None):
-
-    evolution_df = drive_access.get_track(gridname, filename,
+    evolution_df = drive_access.get_track(grid_name, filename,
                                           folder_name=folder_name, model_folder_name=model_folder_name)
 
     if evolution_df is None:
@@ -68,6 +67,24 @@ def read_evolution_model(gridname, filename, history_pars, folder_name=None, mod
     evolution_columns = evolution_df.columns.values.tolist()
 
     return evolution_df, evolution_columns
+
+
+def get_track_from_grid(grid, grid_name, history_pars):
+
+    folder_name, model_folder_name = None, None
+
+    grid_columns = grid.index.values.tolist()
+
+    if 'folder_name' in grid_columns and 'model_folder_name' in grid_columns:
+        folder_name = grid['folder_name']
+        model_folder_name = grid['model_folder_name']
+
+    filename = grid['path'].split('/')[-1]
+
+    track_df, track_columns = read_evolution_model(grid_name, filename, history_pars,
+                                                           folder_name=folder_name, model_folder_name=model_folder_name)
+
+    return track_df, track_columns
 
 
 @app.route('/history', methods=['POST'])
@@ -100,15 +117,10 @@ def history_data():
 
 @app.route('/')
 def homepage():
-    gridname = request.args.get('grid', grid_list['name'][0])
+    grid_name = request.args.get('grid', grid_list['name'][0])
 
-    summary_df, summary_columns = read_summary(gridname, start_pars)
-    folder_name, model_folder_name = None, None
-    if 'folder_name' in summary_columns and 'model_folder_name' in summary_columns:
-        folder_name = summary_df['folder_name'][0]
-        model_folder_name = summary_df['model_folder_name'][0]
-    evolution_df, evolution_columns = read_evolution_model(gridname, summary_df['path'][0].split('/')[-1], history_pars,
-                                                           folder_name=folder_name, model_folder_name=model_folder_name)
+    summary_df, summary_columns = read_summary(grid_name, start_pars)
+    evolution_df, evolution_columns = get_track_from_grid(summary_df.iloc[0], grid_name, history_pars)
 
     # get the data sources
     source = ColumnDataSource(data=summary_df)
@@ -118,9 +130,6 @@ def homepage():
         parameters.remove(p)
     values = [0 for i in parameters]
     table_source = ColumnDataSource(data={'parameters': parameters, 'values': values})
-    
-    # make the grid selector
-    grids_selector = Select(title='Available Grids:', value=grid_list['name'].values.tolist()[0], options=grid_list['name'].values.tolist())
       
     # Setup plot
     plot, p1, p2 = plotting.make_summary_plot(source, table_source, start_pars)
@@ -135,7 +144,6 @@ def homepage():
     history_controls = plotting.make_history_controls([evolution_source], history_pars, evolution_columns, figures)
     
     # create layout
-    # layout1 = layout([[plot, Spacer(width=40, height=10), table]])
     summary_controls = layout([[plot], [controls]])
     table_header = Div(text="<h2>Selected Model</h2>", height=40, sizing_mode="stretch_width")
     table_button = layout([[table_header], [table], [Spacer(width=10, height=20)], [button]])
@@ -155,7 +163,7 @@ def homepage():
     # Render the page
     return render_template('home.html',
                            script=script, summary_div=div[0], properties_div=div[1], history_div=div[2],
-                           grids=grid_list['name'], selected_grid=gridname)
+                           grids=grid_list['name'], selected_grid=grid_name)
 
 
 @app.route('/compare_models')
@@ -168,58 +176,50 @@ def compare_models():
     grid2_df, columns2 = read_summary(grid2, {})
 
     # select only columns available in both grids
-    columns = [value for value in columns1 if value in columns2]
-    grid1_df = grid1_df[columns]
-    grid2_df = grid2_df[columns]
+    grid_columns = [value for value in columns1 if value in columns2]
+    grid1_df = grid1_df[grid_columns]
+    grid2_df = grid2_df[grid_columns]
 
-    # merge the dataframes
+    # merge the data frames
     grid_df = pd.merge(grid1_df, grid2_df, how='inner', on=join, suffixes=('_1', '_2'))
-
-    # obtain the individual tracks
-    folder_name, model_folder_name = None, None
-    if 'folder_name_1' in columns and 'model_folder_name_1' in columns:
-        folder_name = columns['folder_name_1'][0]
-        model_folder_name = columns['model_folder_name_1'][0]
-    track1_df, track_columns = read_evolution_model(grid1, grid1_df['path'][0].split('/')[-1], history_pars,
-                                                           folder_name=folder_name, model_folder_name=model_folder_name)
-    track1_source = ColumnDataSource(data=track1_df)
-
-    folder_name, model_folder_name = None, None
-    if 'folder_name_2' in columns and 'model_folder_name_2' in columns:
-        folder_name = columns['folder_name_2'][0]
-        model_folder_name = columns['model_folder_name_2'][0]
-    track2_df, track_columns = read_evolution_model(grid2, grid2_df['path'][0].split('/')[-1], history_pars,
-                                                    folder_name=folder_name, model_folder_name=model_folder_name)
-    track2_source = ColumnDataSource(data=track2_df)
-
 
     # add the x1, y1, x2 and y2 default columns necessary for the plot to work
     start_pars = {'x1': 'M1_init_1',
                   'y1': 'q_init_1',
                   'x2': 'M1_init_2',
-                  'y2': 'q_init_2',}
+                  'y2': 'q_init_2', }
     for par in start_pars.keys():
         grid_df[par] = grid_df[start_pars[par]]
 
     grid_source = ColumnDataSource(data=grid_df)
+
+    # obtain the individual tracks
+    track1_df, track_columns = get_track_from_grid(grid1_df.iloc[0], grid1, history_pars)
+    track1_source = ColumnDataSource(data=track1_df)
+    track2_df, track_columns = get_track_from_grid(grid2_df.iloc[0], grid2, history_pars)
+    track2_source = ColumnDataSource(data=track2_df)
 
     disp_pars = {'x1': 'M1_init',
                  'y1': 'q_init',
                  'x2': 'M1_init',
                  'y2': 'q_init', }
 
+    # grid comparison plots
     plot, p1, p2 = plotting.make_comparison_plot(grid_source, disp_pars, titles=[grid1, grid2])
-    controls, control_dict = plotting.make_comparison_controls(grid_source, [track1_source, track2_source], p1, p2, disp_pars, columns)
+    controls, control_dict = plotting.make_comparison_controls(grid_source, [track1_source, track2_source], p1, p2,
+                                                               disp_pars, grid_columns)
     comparison_layout = layout([[plot], [controls]])
 
+    # track plots
     history_plots, figures = plotting.make_history_plots([track1_source, track2_source], history_pars)
-    history_controls = plotting.make_history_controls([track1_source, track2_source], history_pars, track_columns, figures)
+    history_controls = plotting.make_history_controls([track1_source, track2_source], history_pars, track_columns,
+                                                      figures)
     history_layout = layout([[history_controls], [history_plots]])
 
     script, div = components((comparison_layout, history_layout))
 
     return render_template('compare_models.html',
-                           grid1=grid1, grid2=grid2, grids=grid_list['name'], join=join, columns=columns,
+                           grid1=grid1, grid2=grid2, grids=grid_list['name'], join=join, columns=grid_columns,
                            script=script, comparison_plot=div[0], history_plot=div[1])
 
 
