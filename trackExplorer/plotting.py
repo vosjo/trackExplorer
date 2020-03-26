@@ -239,10 +239,23 @@ def make_Gaia_CM_diagram(source, table_source):
 
 def make_HR_diagram(source):
     tools = "pan,wheel_zoom,box_zoom,box_select,hover,reset,crosshair"
-    basic_tooltip = [("log_Teff", "$x{0.[000]}"), ("log_g", "$y{0.[000]}")]
+    basic_tooltip = [("log_Teff", "$x{0.[000]}"), ("log_g", "$y{0.[000]}"), ("log_dt", "@log_dt{0.[000]}")]
 
     xpar = 'log_Teff'
     ypar = 'log_g'
+
+    v_func = """
+            const norm = new Float64Array(xs.length)
+            for (let i = 0; i < xs.length; i++) {
+                if (xs[i] < 0) {
+                        norm[i] = 0
+                } else {
+                        norm[i] = xs[i]
+                }
+            }
+            return norm
+            """
+    size_transform = mpl.CustomJSTransform(v_func=v_func)
 
     p = figure(plot_height=500, plot_width=500, tools=tools, title='HR diagram',
                x_axis_label=xpar, y_axis_label=ypar, tooltips=basic_tooltip)
@@ -251,7 +264,7 @@ def make_HR_diagram(source):
     p.outline_line_alpha = 0.3
 
     p.line(xpar, ypar, color='blue', source=source, legend_label='primary')
-    p.circle(xpar, ypar, color='blue', source=source, size=0, legend_label='primary')
+    p.circle(xpar, ypar, color='blue', source=source, size=transform('log_dt', size_transform), legend_label='primary')
 
     p.line(xpar+'_2', ypar+'_2', color='red', source=source, legend_label='secondary')
     p.circle(xpar+'_2', ypar+'_2', color='red', source=source, size=0, legend_label='secondary')
@@ -333,7 +346,7 @@ def make_history_plots(sources, pars_dict, labels=None):
         tools = "pan,wheel_zoom,box_zoom,box_select,hover,reset,crosshair"
         
         p = figure(plot_height=250, plot_width=500, tooltips=basic_tooltip, tools=tools, 
-                   x_axis_label=pars_dict['x'], y_axis_label=pars_dict[ypar], x_range=x_range)
+                   x_axis_label=pars_dict['x'], y_axis_label=pars_dict[ypar], x_range=None)
 
         for source, color, label in zip(sources, colors, labels):
             if len(sources) > 1:
