@@ -26,8 +26,10 @@ grid_list = drive_access.grid_list
 
 start_pars = {'x1': 'M1_init',
               'y1': 'q_init',
+              'z1': 'product',
               'x2': 'M1_init',
               'y2': 'P_init',
+              'z2': 'product',
             }
 
 history_pars = {'x': 'model_number',
@@ -126,7 +128,7 @@ def homepage():
     source = ColumnDataSource(data=summary_df)
     evolution_source = ColumnDataSource(data=evolution_df)
     parameters = summary_df.columns.values.tolist()
-    for p in ['x1', 'y1', 'x2', 'y2']:
+    for p in ['x1', 'y1', 'z1', 'x2', 'y2', 'z2']:
         parameters.remove(p)
     values = [0 for i in parameters]
     table_source = ColumnDataSource(data={'parameters': parameters, 'values': values})

@@ -28,44 +28,45 @@ def make_summary_plot(source, table_source, pars_dict):
 
     pars = ['M1_init', 'M2_init', 'P_init', 'q_init', 'product', 'stability', 'termination_code']
     basic_tooltip = [(p, '@'+p) for p in pars]
-    
-    PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA']
-    MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle']
-    COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'blue', 'orange']
+
+    PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA'] + \
+               ['stable', 'CE', 'contact', 'merger']
+    MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle'] + \
+              ['circle', 'diamond', 'square', 'triangle', ]
+    COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'blue', 'orange'] + \
+             ['red', 'green', 'blue', 'gray']
     SIZES = [7, 7, 7, 7, 15, 7]
-    
+
     v_func = """
-    const norm = new Float64Array(xs.length)
-    for (let i = 0; i < xs.length; i++) {
-        if (xs[i] == 'sdB' || xs[i] == 'Fail') {
-                norm[i] = 15
-        } else {
-                norm[i] = 7
-        }
-    }
-    return norm
-    """
+            const norm = new Float64Array(xs.length)
+            for (let i = 0; i < xs.length; i++) {
+                if (xs[i] == 'sdB' || xs[i] == 'Fail' || xs[i] == 'CE') {
+                        norm[i] = 15
+                } else {
+                        norm[i] = 7
+                }
+            }
+            return norm
+            """
     size_transform = mpl.CustomJSTransform(v_func=v_func)
     
     # Left Figure
-    
     p1 = figure(x_axis_label=pars_dict['x1'], y_axis_label=pars_dict['y1'], active_drag='box_select',
                 tools=tools, tooltips=basic_tooltip)
     
     p1.scatter(x="x1", y="y1", source=source, fill_alpha=0.4,
-            size=transform('product', size_transform),
-            color=factor_cmap('product', COLORS, PRODUCTS),
-            marker=factor_mark('product', MARKERS, PRODUCTS),)
+            size=transform('z1', size_transform),
+            color=factor_cmap('z1', COLORS, PRODUCTS),
+            marker=factor_mark('z1', MARKERS, PRODUCTS),)  # legend_group="z1",
 
     # Right Figure
-    
     p2 = figure(x_axis_label=pars_dict['x2'], y_axis_label=pars_dict['y2'], active_drag='box_select',
                 tools=tools, tooltips=basic_tooltip)
     
     p2.scatter(x="x2", y="y2", source=source, fill_alpha=0.4,
-            size=transform('product', size_transform),
-            color=factor_cmap('product', COLORS, PRODUCTS),
-            marker=factor_mark('product', MARKERS, PRODUCTS),)
+            size=transform('z2', size_transform),
+            color=factor_cmap('z2', COLORS, PRODUCTS),
+            marker=factor_mark('z2', MARKERS, PRODUCTS),)  # legend_group="z2",
     
     # color_bar2 = mpl.ColorBar(color_mapper=color_mapper, location=(0,0), title=pars_dict['color2'], title_text_font_size='12pt')
     # p2.add_layout(color_bar2, 'right')
@@ -109,7 +110,9 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
         var parname = cb_obj.value;
         data[axisname] = data[parname];
         summary_pars[axisname] = parname; //store the parameter name in a global variable
-        axis.axis_label = parname;
+        if (axis != '') {
+            axis.axis_label = parname;
+        }
         source.change.emit();
     """
 
@@ -119,11 +122,17 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
     y1 = Select(title='Y-Axis 1', value=pars_dict['y1'], options=select_options)
     y1.js_on_change('value', CustomJS(args=dict(source=source, axisname='y1', axis=p1.yaxis[0]), code=calbackcode))
 
+    z1 = Select(title='Marker', value=pars_dict['z1'], options=['product', 'stability'])
+    z1.js_on_change('value', CustomJS(args=dict(source=source, axisname='z1', axis=''), code=calbackcode))
+
     x2 = Select(title='X-Axis 2', value=pars_dict['x2'], options=select_options)
     x2.js_on_change('value', CustomJS(args=dict(source=source, axisname='x2', axis=p2.xaxis[0]), code=calbackcode))
 
     y2 = Select(title='Y-Axis 2', value=pars_dict['y2'], options=select_options)
     y2.js_on_change('value', CustomJS(args=dict(source=source, axisname='y2', axis=p2.yaxis[0]), code=calbackcode))
+
+    z2 = Select(title='Marker', value=pars_dict['z2'], options=['product', 'stability'])
+    z2.js_on_change('value', CustomJS(args=dict(source=source, axisname='z2', axis=''), code=calbackcode))
 
     update_source = CustomJS(args=dict(summary_source=source, history_source=history_source), code="""
         update_source(summary_source, history_source, grid_name, '')
@@ -138,12 +147,14 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
     # controls2 = widgetbox(x2, y2, width=300)
     # controls = column([controls1, controls2, button])
 
-    controls = row([x1, y1, x2, y2])
+    controls = column([row([x1, y1, x2, y2]), row([z1, z2])])
 
     control_dict = {"x1": x1,
                     "y1": y1,
+                    "z1": z1,
                     "x2": x2,
                     "y2": y2,
+                    "z2": z2,
                     }
 
     return controls, button, control_dict
@@ -155,15 +166,18 @@ def make_Gaia_CM_diagram(source, table_source):
     pars = ['M1_init', 'M2_init', 'P_init', 'q_init', 'product', 'stability', 'termination_code']
     basic_tooltip = [(p, '@' + p) for p in pars]
 
-    PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA']
-    MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle']
-    COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'blue', 'orange']
+    PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA'] + \
+               ['stable', 'CE', 'contact', 'merger']
+    MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle'] + \
+              ['circle', 'diamond', 'square', 'triangle', ]
+    COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'blue', 'orange'] + \
+             ['red', 'green', 'blue', 'gray']
     SIZES = [7, 7, 7, 7, 15, 7]
 
     v_func = """
         const norm = new Float64Array(xs.length)
         for (let i = 0; i < xs.length; i++) {
-            if (xs[i] == 'sdB' || xs[i] == 'Fail') {
+            if (xs[i] == 'sdB' || xs[i] == 'Fail' || xs[i] == 'CE') {
                     norm[i] = 15
             } else {
                     norm[i] = 7
@@ -184,9 +198,9 @@ def make_Gaia_CM_diagram(source, table_source):
     p1.circle(hiparcos['bp_rp'], hiparcos['M_g'], size=1, color='gray')
 
     p1.scatter(x="BP-RP_HeCoreBurning", y="G_HeCoreBurning", source=source, fill_alpha=0.4,
-               size=transform('product', size_transform),
-               color=factor_cmap('product', COLORS, PRODUCTS),
-               marker=factor_mark('product', MARKERS, PRODUCTS),
+               size=transform('z1', size_transform),
+               color=factor_cmap('z1', COLORS, PRODUCTS),
+               marker=factor_mark('z1', MARKERS, PRODUCTS),
                view=view1)
 
     # Right Figure
@@ -200,9 +214,9 @@ def make_Gaia_CM_diagram(source, table_source):
     p2.circle(hiparcos['bp_rp'], hiparcos['M_g'], size=1, color='gray')
 
     p2.scatter(x="BP-RP_MLstart", y="G_MLstart", source=source, fill_alpha=0.4,
-               size=transform('product', size_transform),
-               color=factor_cmap('product', COLORS, PRODUCTS),
-               marker=factor_mark('product', MARKERS, PRODUCTS),
+               size=transform('z1', size_transform),
+               color=factor_cmap('z1', COLORS, PRODUCTS),
+               marker=factor_mark('z1', MARKERS, PRODUCTS),
                view=view2)
 
     plot = gridplot([[p1, p2]])
