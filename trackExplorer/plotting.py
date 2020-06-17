@@ -30,11 +30,14 @@ def make_summary_plot(source, table_source, pars_dict):
     basic_tooltip = [(p, '@'+p) for p in pars]
 
     PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA'] + \
-               ['stable', 'CE', 'contact', 'merger']
+               ['stable', 'CE', 'contact', 'merger'] +\
+               ['single-lined', 'composite']
     MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle'] + \
-              ['circle', 'diamond', 'square', 'triangle', ]
+              ['circle', 'diamond', 'square', 'triangle', ] +\
+              ['circle', 'circle']
     COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'blue', 'orange'] + \
-             ['red', 'green', 'blue', 'gray']
+             ['red', 'green', 'blue', 'gray'] +\
+             ['gray', 'blue']
     SIZES = [7, 7, 7, 7, 15, 7]
 
     v_func = """
@@ -116,13 +119,15 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
         source.change.emit();
     """
 
+    z_options = ['product', 'stability', 'binary_type']
+
     x1 = Select(title='X-Axis 1', value=pars_dict['x1'], options=select_options)
     x1.js_on_change('value', CustomJS(args=dict(source=source, axisname='x1', axis=p1.xaxis[0]), code=calbackcode))
 
     y1 = Select(title='Y-Axis 1', value=pars_dict['y1'], options=select_options)
     y1.js_on_change('value', CustomJS(args=dict(source=source, axisname='y1', axis=p1.yaxis[0]), code=calbackcode))
 
-    z1 = Select(title='Marker', value=pars_dict['z1'], options=['product', 'stability'])
+    z1 = Select(title='Marker', value=pars_dict['z1'], options=z_options)
     z1.js_on_change('value', CustomJS(args=dict(source=source, axisname='z1', axis=''), code=calbackcode))
 
     x2 = Select(title='X-Axis 2', value=pars_dict['x2'], options=select_options)
@@ -131,7 +136,7 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
     y2 = Select(title='Y-Axis 2', value=pars_dict['y2'], options=select_options)
     y2.js_on_change('value', CustomJS(args=dict(source=source, axisname='y2', axis=p2.yaxis[0]), code=calbackcode))
 
-    z2 = Select(title='Marker', value=pars_dict['z2'], options=['product', 'stability'])
+    z2 = Select(title='Marker', value=pars_dict['z2'], options=z_options)
     z2.js_on_change('value', CustomJS(args=dict(source=source, axisname='z2', axis=''), code=calbackcode))
 
     update_source = CustomJS(args=dict(summary_source=source, history_source=history_source), code="""
