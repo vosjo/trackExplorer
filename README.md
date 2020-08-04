@@ -55,6 +55,9 @@ display,
 - **model_folder_name** is the folder inside the main grid folder containing the compressed models in hdf5 format.
 - **info** is a column to store extra info on a grid. it is not currently displayed by track explorer.
 
+The summary file in csv format needs to contain a column called 'path' that contains the name of the compressed mesa
+track that is the same as the filename for that track in the model_folder_name.
+
 When deployed on Heroku, Track explorer will automatically fetch the Model_grid_info when a Heroku slug is spun up. Due
 to how Heroku operates, a free node will not maintain its state so the Model_grid_info will be frequently refreshed. If
 you deploy on another platform, you might need to adjust in the code to update the file on a regular basis, e.g. with a 
