@@ -64,7 +64,10 @@ def read_evolution_model(grid_name, filename, history_pars, folder_name=None, mo
         return pd.DataFrame(data=result), keys
 
     for par in history_pars.keys():
-        evolution_df[par] = evolution_df[history_pars[par]]
+        if history_pars[par] in evolution_df:
+            evolution_df[par] = evolution_df[history_pars[par]]
+        else:
+            evolution_df[par] = evolution_df.loc[0]
 
     evolution_columns = evolution_df.columns.values.tolist()
 

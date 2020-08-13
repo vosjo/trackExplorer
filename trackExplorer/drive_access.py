@@ -42,6 +42,7 @@ def request_from_drive(q):
         query_res = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True,
                                          supportsAllDrives=True, corpora='drive').execute()
         result = query_res['files'][0]['id']
+        print(q, '\n--> Success')
     except (HttpError, IndexError) as e:
         print(q, '\n--> ', e)
         result = pd.NA
