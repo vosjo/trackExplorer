@@ -29,13 +29,13 @@ def make_summary_plot(source, table_source, pars_dict):
     pars = ['M1_init', 'M2_init', 'P_init', 'q_init', 'product', 'stability', 'termination_code']
     basic_tooltip = [(p, '@'+p) for p in pars]
 
-    PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdB', 'sdA'] + \
+    PRODUCTS = ['HB', 'He-WD', 'CE', 'UK', 'failed', 'sdO', 'sdB', 'sdA'] + \
                ['stable', 'CE', 'contact', 'merger'] +\
                ['single-lined', 'composite']
-    MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle'] + \
+    MARKERS = ['square', 'triangle', 'asterisk', 'asterisk', 'diamond', 'circle', 'circle', 'circle'] + \
               ['circle', 'diamond', 'square', 'triangle', ] +\
               ['circle', 'circle']
-    COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'blue', 'orange'] + \
+    COLORS = ['red', 'green', 'purple', 'purple', 'gray', 'green', 'blue', 'orange'] + \
              ['red', 'green', 'blue', 'gray'] +\
              ['gray', 'blue']
     SIZES = [7, 7, 7, 7, 15, 7]
