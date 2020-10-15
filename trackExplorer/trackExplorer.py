@@ -22,6 +22,9 @@ except:
 
 DOWNLOAD_FOLDER = os.path.join('trackExplorer','downloads')
 
+if not os.path.isdir(DOWNLOAD_FOLDER):
+    os.mkdir(DOWNLOAD_FOLDER)
+
 #Connect the app
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = os.urandom(24)
