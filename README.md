@@ -85,3 +85,16 @@ https://devcenter.heroku.com/articles/getting-started-with-python
 Do not store the credentials of the google service account in your code base. Use heroku config vars to store the 
 credentials. I use this build pack to deal with the credentials: 
 https://github.com/elishaterada/heroku-google-application-credentials-buildpack 
+
+In Heroku -> Settings under the heading "Config Vars" add the following two variables:
+
+| KEY                            | VALUE                                            |
+|--------------------------------|--------------------------------------------------|
+| GOOGLE_APPLICATION_CREDENTIALS | google-credentials.json                          |
+| GOOGLE_CREDENTIALS             | The content of your google-credentials.json file |
+
+Furthermore, under the heading Buildpacks click "Add buildpack" and enter the following url:
+
+https://github.com/gerywahyunugraha/heroku-google-application-credentials-buildpack
+
+Now restart your dynos for the changes to take effect.
