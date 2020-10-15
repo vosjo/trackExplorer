@@ -142,9 +142,16 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
     update_source = CustomJS(args=dict(summary_source=source, history_source=history_source), code="""
         update_source(summary_source, history_source, grid_name, '')
         """)
-    
+
     button = Button(label="Plot selected track", button_type="success", sizing_mode="stretch_width")
     button.js_on_click(update_source)
+
+    download_source = CustomJS(args=dict(summary_source=source, history_source=history_source), code="""
+            download_source(summary_source, history_source, grid_name, '')
+            """)
+
+    dl_button = Button(label="Download selected track", button_type="success", sizing_mode="stretch_width")
+    dl_button.js_on_click(download_source)
 
 
     # create sumary plots
@@ -162,7 +169,7 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
                     "z2": z2,
                     }
 
-    return controls, button, control_dict
+    return controls, button, dl_button, control_dict
 
 
 def make_Gaia_CM_diagram(source, table_source):

@@ -1,6 +1,7 @@
 
 import io
 import os
+import shutil
 import tempfile
 
 import pandas as pd
@@ -135,7 +136,7 @@ def get_summary_file(gridname):
     return data
 
 
-def get_track(gridname, filename, folder_name=None, model_folder_name=None):
+def get_track(gridname, filename, folder_name=None, model_folder_name=None, save_filename=None):
     global grid_list, driveId
 
     if os.path.isfile('temp/'+filename):
@@ -166,16 +167,36 @@ def get_track(gridname, filename, folder_name=None, model_folder_name=None):
         file_id = files['files'][0]['id']
 
         request = service.files().get_media(fileId=file_id)
-        with tempfile.NamedTemporaryFile() as temp:
-            downloader = MediaIoBaseDownload(temp, request)
+
+        if save_filename is None:
+            with tempfile.NamedTemporaryFile() as temp:
+                downloader = MediaIoBaseDownload(temp, request)
+                done = False
+                while done is False:
+                    status, done = downloader.next_chunk()
+
+                data = read_history(temp.name)
+                data = pd.DataFrame(data)
+            return data
+        else:
+            fh = io.BytesIO()
+            downloader = MediaIoBaseDownload(fh, request)
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
 
-            data = read_history(temp.name)
-            data = pd.DataFrame(data)
+            # The file has been downloaded into RAM, now save it in a file
+            fh.seek(0)
+            with open(save_filename, 'wb') as f:
+                shutil.copyfileobj(fh, f, length=131072)
+
+            print('get_track:', save_filename)
+
+            return os.path.basename(save_filename)
 
     return data
+
+
 
 
 update_grid_list()

@@ -1,7 +1,9 @@
  
 #Load the packages
+import os
+import io
 import pandas as pd
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file
 
 import urllib
 
@@ -18,8 +20,12 @@ except:
     import plotting, drive_access
     from fileio import read_history
 
+DOWNLOAD_FOLDER = os.path.join('trackExplorer','downloads')
+
 #Connect the app
 app = Flask(__name__, static_url_path='/static')
+app.secret_key = os.urandom(24)
+app.config['DOWNLOAD_FOLDER'] = DOWNLOAD_FOLDER
 
 #Get the grid list
 grid_list = drive_access.grid_list
@@ -119,6 +125,46 @@ def history_data():
     return jsonify(data_dict)
 
 
+@app.route('/download_history', methods=['POST'])
+def download_history_data():
+    """
+    This view will return the url from which the track.h5 file can be downloaded.
+    The frontend is responsible for sending a post request to download_and_remove with the filename to actually get
+    the file.
+    """
+
+    data = request.get_json(force=True)
+    gridname = data.get('grid_name')
+    filename = data.get('file_name')
+    filename = filename.split('/')[-1]
+    folder_name = data.get('folder_name', None)
+    model_folder_name = data.get('model_folder_name', None)
+
+    track_filename = app.config['DOWNLOAD_FOLDER'] + '/' + filename
+
+    track_filename = drive_access.get_track(gridname, filename, folder_name=folder_name,
+                           model_folder_name=model_folder_name, save_filename=track_filename)
+
+    print('download_history_data: ', track_filename)
+
+    return jsonify({'url': '/download_history/'+track_filename})
+
+
+@app.route('/download_history/<filename>')
+def download_and_remove(filename):
+
+    path = os.path.join(app.config['DOWNLOAD_FOLDER'], filename)
+
+    def generate():
+        with open(path, 'rb') as f:
+            yield from f
+
+        os.remove(path)
+
+    r = app.response_class(generate(), mimetype='application/octet-stream')
+    r.headers.set('Content-Disposition', 'attachment', filename=filename)
+    return r
+
 
 @app.route('/')
 def homepage():
@@ -139,7 +185,7 @@ def homepage():
     # Setup plot
     plot, p1, p2 = plotting.make_summary_plot(source, table_source, start_pars)
     cm_plot, cm_p1, cm_p2 = plotting.make_Gaia_CM_diagram(source, table_source)
-    controls, button, control_dict = plotting.make_summary_controls(source, evolution_source, p1, p2, start_pars, summary_columns)
+    controls, button, dl_button, control_dict = plotting.make_summary_controls(source, evolution_source, p1, p2, start_pars, summary_columns)
     table = plotting.make_summary_table(table_source)
 
     hr_plot = plotting.make_HR_diagram(evolution_source)
@@ -151,7 +197,7 @@ def homepage():
     # create layout
     summary_controls = layout([[plot], [controls]])
     table_header = Div(text="<h2>Selected Model</h2>", height=40, sizing_mode="stretch_width")
-    table_button = layout([[table_header], [table], [Spacer(width=10, height=20)], [button]])
+    table_button = layout([[table_header], [table], [Spacer(width=10, height=20)], [button], [dl_button]])
 
     tab1 = Panel(child=summary_controls, title="Grid summary")
     tab2 = Panel(child=cm_plot, title="Gaia Color-Magnitude")
@@ -226,7 +272,6 @@ def compare_models():
     return render_template('compare_models.html',
                            grid1=grid1, grid2=grid2, grids=grid_list['name'], join=join, columns=grid_columns,
                            script=script, comparison_plot=div[0], history_plot=div[1])
-
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True) # Set to false when deploying
