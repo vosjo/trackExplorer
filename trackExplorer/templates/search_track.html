@@ -14,20 +14,6 @@
     </script>
 
    
-    <script>
-    // Define some global variables
-    var summary_pars = {'x1': '',
-                     'y1': '',
-                     'z1': '',
-                     'x2': '',
-                     'y2': '',
-                     'z2': '',
-                     };
-
-    var history_pars = {};
-    var grid_name = "{{selected_grid}}";
-    var selected_indices = [];
-    </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='js/basic_scripts.js') }}"></script>
 
@@ -44,20 +30,20 @@
 <body>
 
     <div style="display: block; padding-bottom: 20px">
-        <h1 style="display: inline;">MESA Track explorer: Explore tracks</h1>
+        <h1 style="display: inline;">MESA Track explorer: Search tracks</h1>
         <a href="/">explore tracks</a>
         <a href="/compare_models">compare grids</a>
         <a href="/search_track">search tracks</a>
     </div>
 
     <div>
-    <form action="/" method="GET">
+    <form action="/search_track" method="GET">
         <table>
         <th>
-            <label class="bk">Select a model grid:</label>
+            <label class="bk" for="grid">Select a model grid:</label>
         </th>
         <th>
-            <select name="grid">
+            <select id="grid" name="grid">
                 {% for grid in grids %}
                 {% if grid == selected_grid %}
                 <option value="{{grid}}" selected>{{ grid }}</option>
@@ -68,18 +54,20 @@
             </select>
         </th>
         <th>
-            <button type="submit">Load grid</button>
+            <label class="bk" for="track">Track name:</label>
+        </th>
+        <th>
+            <input type="text" id="track" name="track">
+        </th>
+        <th>
+            <button type="submit">Load Track</button>
         </th>
         </table>
     </form>
     </div>
 
-
-    <div>
-    {{ summary_div | safe }}
-    </div>
-
-    <h2 id="evolution_header">Evolution history</h2>
+    {% if properties_div %}
+    <h2 id="evolution_header">Evolution history of: {{ track_name }}</h2>
 
     <div>
     {{ properties_div | safe }}
@@ -88,6 +76,9 @@
     <div>
     {{ history_div | safe }}
     </div>
+    {% else %}
+    <h2 id="evolution_header">Search for a track to display it...</h2>
+    {% endif %}
 
 </body>
 </html>

@@ -22,8 +22,8 @@ except:
 
 DOWNLOAD_FOLDER = os.path.join('trackExplorer','downloads')
 
-if not os.path.isdir(DOWNLOAD_FOLDER):
-    os.mkdir(DOWNLOAD_FOLDER)
+# if not os.path.isdir(DOWNLOAD_FOLDER):
+#     os.mkdir(DOWNLOAD_FOLDER)
 
 #Connect the app
 app = Flask(__name__, static_url_path='/static')
@@ -46,7 +46,7 @@ history_pars = {'x': 'model_number',
                 'y2': 'log_LHe',
                 'y3': 'lg_mstar_dot_1',
                 'y4': 'rl_overflow_1',
-                'y5': 'R1_div_a',
+                'y5': 'star_1_radius',
                 'y6': 'log10_J_div_Jdot_div_P',}
 
 
@@ -275,6 +275,44 @@ def compare_models():
     return render_template('compare_models.html',
                            grid1=grid1, grid2=grid2, grids=grid_list['name'], join=join, columns=grid_columns,
                            script=script, comparison_plot=div[0], history_plot=div[1])
+
+
+@app.route('/search_track')
+def search_track():
+
+    grid_name = request.args.get('grid', grid_list['name'][0])
+    track_name = request.args.get('track', None)
+
+    if track_name is not None:
+
+        track_name_series = pd.Series(data={'path': track_name})
+
+        evolution_df, evolution_columns = get_track_from_grid(track_name_series, grid_name, history_pars)
+
+        # get the track source
+        track_source = ColumnDataSource(data=evolution_df)
+
+        # Setup plots
+        hr_plot = plotting.make_HR_diagram(track_source)
+        center_plot = plotting.make_center_track(track_source)
+
+        history_plots, figures = plotting.make_history_plots([track_source], history_pars)
+        history_controls = plotting.make_history_controls([track_source], history_pars, evolution_columns, figures)
+
+        # create layout
+        properties_plot = gridplot([[hr_plot, center_plot]], toolbar_location='right')
+
+        history_plot = layout([[history_controls], [history_plots]])
+
+        script, div = components((properties_plot, history_plot))
+    else:
+        script = None
+        div = [None, None]
+
+    # Render the page
+    return render_template('search_track.html',
+                           script=script, properties_div=div[0], history_div=div[1],
+                           grids=grid_list['name'], selected_grid=grid_name, track_name=track_name)
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True) # Set to false when deploying

@@ -1,0 +1,23 @@
+name,folder_name,summary_file,model_folder_name,info,base_folder_id,model_folder_id,summary_file_id
+L3 grid standard,BPS_L3_grid,BPS_L3_alpha_0.3.csv,processed_L3_h5,With L3 overflow; stability J_div_Jdot_div_P < 10; CE Dewi & Tauris 2000,1BuCbba2Wgbgj6nvn0fa3gL9XMh0TTUDR,14HEfmXem0LqqdGEgVGuRBYjDAJPigZdR,14hSGG6rM3dKbQPn3mCMvt_fk5P6KJ-Pz
+L3 grid noL3,BPS_L3_grid,BPS_L3_noL3_alpha_0.3.csv,processed_noL3_Full_h5,Standard L3 grid without L3 overflow; stability J_div_Jdot_div_P < 10; CE Dewi & Tauris 2000,1BuCbba2Wgbgj6nvn0fa3gL9XMh0TTUDR,1we-3V86mCwWiMnwq1v8Xp7J4Y6-q-B8_,1dKaD7t8-PoCdHimTjh4CC0j7n3VCzCbZ
+L3 Zoom ,BPS_L3_grid,L3_zoom_alpha_0.3.csv,processed_L3_zoom,With L3 overflow; stability J_div_Jdot_div_P < 10; CE Dewi & Tauris 2000,1BuCbba2Wgbgj6nvn0fa3gL9XMh0TTUDR,1J6zJjZjj9QUsAIKSBlLaji3Tg61Cxqs2,1CYfGvaPRaUnBUF_Tsd2RFHXq3PkFmYxt
+L3 Zoom noL3,BPS_L3_grid,L3_zoom_noL3_alpha_0.3.csv,processed_L3_zoom_noL3,No L3 overflow; stability J_div_Jdot_div_P < 10; CE Dewi & Tauris 2000,1BuCbba2Wgbgj6nvn0fa3gL9XMh0TTUDR,1Km40y3fgMaVmFb15rR8NCsefZxzE6QTS,1jlGwnBhFV4WZK6UPFB7g_ZIdEezuwBFk
+ShortP grid standard,BPS_shortP_grid,sdBshortP_small_Mdot-2_alpha_0.3.csv,processed_small,short Period BPS grid; stability J_div_Jdot_div_P < 10; CE Dewi & Tauris 2000,1I5zTUtOp2GgBg0DXCLFlZitbnw3TLQ2P,1yuGPevXNy4hwPaYkbLo6YjGXdct2Sktx,1UO_EO_p8vnYImmDLXH4ucMqs5-_GVAQ_
+All low mass subdwarfs,Special_grids,Low_mass_subdwarfs.csv,in_file,All low mass subdwarfs (Mi < 2.0) from the L3 grid standard and the ShortP grid standard run,1eXlnZEvLiRuhKZXOhooiPhAWB7MUITz_,,15GkmdUJwtUMIQVmkN7x6Mp04Xj01b6vF
+All low mass systems,Special_grids,All_low_mass_systems.csv,in_file,All low mass systems (Mi < 2.0) from the L3 grid standard and the ShortP grid standard run,1eXlnZEvLiRuhKZXOhooiPhAWB7MUITz_,,14OSLksowaIlK5HcQO-EFcbZRJi4p60SQ
+All subdwarfs,Special_grids,All_subdwarfs.csv,in_file,All subdwarfs from the L3 grid standard and the ShortP grid standard run,1eXlnZEvLiRuhKZXOhooiPhAWB7MUITz_,,1QP1TPqSAWKihDvsrKnFx48nT2eP9KlgF
+Referee grid,Referee_set,Referee_set_Mdot-2_alpha_0.3.csv,processed,Set to check influence of the starting parameters. ,1n7AUu2fFeUYgMfLirKtlG1gBo0Pz6MQ0,1gCe6OM_ImhdqI_aW7rjgwnGfFbacyMuf,16ofCrIpPy2bDYARO5vTPTRDyJlRTKtgS
+Referee grid 2,Referee_set,Referee_set_2_Mdot-2_alpha_0.3.csv,processed2,Updated set to check influence of the starting parameters. ,1n7AUu2fFeUYgMfLirKtlG1gBo0Pz6MQ0,13JXfp1kPMpmFp0HfB03U5OwcWuzqeswI,1yeRK3CxJIgyzj66DkQeyyQILmy3lglW1
+Referee grid 3,Referee_set,Referee_set_3_Mdot-2_alpha_0.3.csv,processed3,Extended to check starting parameters and Jz loss,1n7AUu2fFeUYgMfLirKtlG1gBo0Pz6MQ0,1VEz1CBhjUEhClKzansRJ7w6ncobMrTuw,16uWjmmqeckIH-3gnVzIr8tnpnC8cGERf
+Referee grid 5,Referee_set,Referee_set_5_Mdot-2_alpha_0.3.csv,processed5,Extended to check starting parameters and Jz loss centered on sdBs,1n7AUu2fFeUYgMfLirKtlG1gBo0Pz6MQ0,1KoQx_m-awE87oUbKemDt1tURXMg3Xn7m,1rl8nlN8HFac1mT4KjbJ9vjyLccCZEvcs
+L3 grid noL3 small,BPS_L3_grid,BPS_L3_noL3.csv,processed_noL3_h5,No L3 overflow; stability J_div_Jdot_div_P < 10; CE Dewi & Tauris 2000,1BuCbba2Wgbgj6nvn0fa3gL9XMh0TTUDR,1tZ3pOZhDoPLCtAKTFqm3UCtRBstgwOuE,
+Pq Cloud FeH Fixed,CloudRuns,PqCloudsFeHFixed_Mdot-2_alpha_0.3.csv,processed_fixed,Pq clouds for different initial masses with metalicity fixed,,,
+Pq Cloud FeH Gauss,CloudRuns,PqCloudsFeHGauss_Mdot-2_alpha_0.3.csv,processed_gauss,Pq clouds for different initial masses with metalicity varying in 1 sigma range,,,
+Pq Cloud Thick Disc,CloudRuns,PqCloudsThickDisc_Mdot-2_alpha_0.3.csv,processed_thick,Pq clouds for the thick disc,,,
+Pq Cloud Thick Disc Conservative,BPS_Branch2,PqCloudsThickDisk_conservative_Mdot-2_alpha_0.3.csv,processed_PqCloudsThickDisk_conservative,"Thick disk models with conservative mass transfer, aimed at exploring the 2nd branch",12SjcUs2HxXw3ZmlBjlZyeBZAGdk9pSoN,1a6m3Os_2i0jCyvLHPkCo9h7XUjV-SdA1,1EYqm8BChNg8wI_k5RFSWBI85GMOapr0q
+Pq Cloud Thick Disc Conservative pointmass,BPS_Branch2,PqCloudsThickDisk_pointmass_Mdot-2_alpha_0.3.csv,processed_PqCloudsThickDisk_pointmass,"Thick disk models with conservative mass transfer onto a pointmass, aimed at exploring the 2nd branch",12SjcUs2HxXw3ZmlBjlZyeBZAGdk9pSoN,,
+Massive FeH 0.0,Massive_models,MassiveFeH0.0_Mdot-2_alpha_1.csv,processed_massive,massive models FeH=0.0,,,
+Massive FeH 0.5,Massive_models,MassiveFeH0.5_Mdot-2_alpha_1.csv,processed_massive,massive models FeH=0.5,,,
+Massive FeH -1,Massive_models,MassiveFeHM1.0_Mdot-2_alpha_1.csv,processed_massive,massive models FeH=-1.0,,,
+Massive FeH -2,Massive_models,MassiveFeHM2.0_Mdot-2_alpha_1.csv,processed_massive,massive models FeH=-2.0,,,

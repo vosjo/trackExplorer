@@ -69,16 +69,27 @@ def get_drive_IDs(model):
     return base_folder_id, model_folder_id, summary_file_id
 
 
-def update_grid_list():
+def update_grid_list(force=False):
     
     global grid_list, driveId
-    
-    # get the drive Id
+
+    # get the drive Id, needs to be done always
     driveId = None
     all_drives = service.drives().list().execute()
     for drive in all_drives['drives']:
         if drive['name'] == 'MESA models':
             driveId = drive['id']
+
+    if os.path.isfile('grid_list.csv') and not force:
+        grid_list = pd.read_csv('grid_list.csv')
+        if 'base_folder_id' in grid_list.columns and 'model_folder_id' in grid_list.columns and \
+            'summary_file_id' in grid_list.columns:
+            print ('Loaded grid list from file.')
+            return
+        else:
+            print("Local grid list doesn't contain google drive ids")
+    else:
+        print("No local grid list found.")
     
     # get trackExplorer folder Id
     folders = service.files().list(q = "mimeType = 'application/vnd.google-apps.folder' and name = 'trackExplorer'", 
