@@ -9,7 +9,7 @@ import urllib
 
 from bokeh.models import ColumnDataSource, Select
 from bokeh.embed import components
-from bokeh.layouts import layout, gridplot, Spacer
+from bokeh.layouts import layout, gridplot, Spacer, column
 from bokeh.models.widgets import Panel, Tabs, Div
 
 # added try catch to allow local running of the code without heroku
@@ -22,8 +22,8 @@ except:
 
 DOWNLOAD_FOLDER = os.path.join('trackExplorer','downloads')
 
-# if not os.path.isdir(DOWNLOAD_FOLDER):
-#     os.mkdir(DOWNLOAD_FOLDER)
+if not os.path.isdir(DOWNLOAD_FOLDER):
+    os.mkdir(DOWNLOAD_FOLDER)
 
 #Connect the app
 app = Flask(__name__, static_url_path='/static')
@@ -142,13 +142,21 @@ def download_history_data():
     filename = filename.split('/')[-1]
     folder_name = data.get('folder_name', None)
     model_folder_name = data.get('model_folder_name', None)
+    file_type = data.get('file_type', 'hdf5')
 
     track_filename = app.config['DOWNLOAD_FOLDER'] + '/' + filename
+    # track_filename = 'downloads/'+filename
 
-    track_filename = drive_access.get_track(gridname, filename, folder_name=folder_name,
+    if file_type == 'hdf5':
+        track_filename = drive_access.get_track(gridname, filename, folder_name=folder_name,
                            model_folder_name=model_folder_name, save_filename=track_filename)
 
-    print('download_history_data: ', track_filename)
+        print('download_history_data: ', track_filename)
+    else:
+        track_df, _ = read_evolution_model(gridname, filename, history_pars, folder_name=None, model_folder_name=None)
+        track_filename = os.path.splitext(track_filename)[0] + '.csv'
+        track_df.to_csv(track_filename, index=False)
+        track_filename = os.path.basename(track_filename)
 
     return jsonify({'url': '/download_history/'+track_filename})
 
@@ -157,6 +165,7 @@ def download_history_data():
 def download_and_remove(filename):
 
     path = os.path.join(app.config['DOWNLOAD_FOLDER'], filename)
+    # path = 'downloads/'+filename
 
     def generate():
         with open(path, 'rb') as f:
@@ -299,8 +308,11 @@ def search_track():
         history_plots, figures = plotting.make_history_plots([track_source], history_pars)
         history_controls = plotting.make_history_controls([track_source], history_pars, evolution_columns, figures)
 
+        button_h5, button_csv = plotting.make_download_history_buttons(grid_name, track_name)
+
         # create layout
         properties_plot = gridplot([[hr_plot, center_plot]], toolbar_location='right')
+        properties_plot = layout([[properties_plot, column(button_h5, button_csv)]])
 
         history_plot = layout([[history_controls], [history_plots]])
 

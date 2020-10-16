@@ -458,6 +458,24 @@ def make_history_controls(track_sources, pars_dict, select_options, figures):
     return controls_history
 
 
+def make_download_history_buttons(grid_name, track_name):
+
+    download_h5 = CustomJS(args=dict(grid_name=grid_name, track_name=track_name), code="""
+            download_source(grid_name, track_name, 'hdf5')
+            """)
+
+    button_h5 = Button(label="Download HDF5", button_type="success", sizing_mode="stretch_width")
+    button_h5.js_on_click(download_h5)
+
+    download_csv = CustomJS(args=dict(grid_name=grid_name, track_name=track_name), code="""
+                download_source(grid_name, track_name, 'csv')
+                """)
+
+    button_csv = Button(label="Download CSV", button_type="success", sizing_mode="stretch_width")
+    button_csv.js_on_click(download_csv)
+
+    return button_h5, button_csv
+
 def make_comparison_plot(source, pars_dict, titles=['', '']):
     tools = "pan,wheel_zoom,box_zoom,box_select,tap,hover,reset,crosshair"
 
