@@ -173,8 +173,16 @@ def get_track(gridname, filename, folder_name=None, model_folder_name=None, save
                                      corpora='drive').execute()
 
         if len(files['files']) == 0:
-            print("File {} not found".format(filename))
-            return None
+            print("File {} not found in folder {}".format(filename, folder_id))
+            print("Searching in whole drive ...")
+
+            files = service.files().list(q="name = '{}'".format(filename),
+                                     driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
+                                     corpora='drive').execute()
+
+            if len(files['files']) == 0:
+                print("File {} not found in drive".format(filename))
+                return None
         file_id = files['files'][0]['id']
 
         request = service.files().get_media(fileId=file_id)
