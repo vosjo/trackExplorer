@@ -180,9 +180,13 @@ def get_track(gridname, filename, folder_name=None, model_folder_name=None, save
                                      driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                      corpora='drive').execute()
 
+            if files['incompleteSearch']:
+                print('The search was incomplete!')
+
             if len(files['files']) == 0:
                 print("File {} not found in drive".format(filename))
                 return None
+
         file_id = files['files'][0]['id']
 
         request = service.files().get_media(fileId=file_id)

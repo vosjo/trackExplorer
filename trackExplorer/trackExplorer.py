@@ -22,8 +22,8 @@ except:
 
 DOWNLOAD_FOLDER = os.path.join('trackExplorer','downloads')
 
-if not os.path.isdir(DOWNLOAD_FOLDER):
-    os.mkdir(DOWNLOAD_FOLDER)
+# if not os.path.isdir(DOWNLOAD_FOLDER):
+#     os.mkdir(DOWNLOAD_FOLDER)
 
 #Connect the app
 app = Flask(__name__, static_url_path='/static')
@@ -294,6 +294,7 @@ def search_track():
 
     if track_name is not None:
 
+        track_name = track_name.strip()
         track_name_series = pd.Series(data={'path': track_name})
 
         evolution_df, evolution_columns = get_track_from_grid(track_name_series, grid_name, history_pars)
