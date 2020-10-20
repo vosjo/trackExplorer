@@ -1,1 +1,1 @@
-web: gunicorn trackExplorer.trackExplorer:app --log-file=-
+web: gunicorn trackExplorer.trackExplorer:app --log-file=- --timeout=60
