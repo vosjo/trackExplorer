@@ -22,8 +22,8 @@ except:
 
 DOWNLOAD_FOLDER = os.path.join('trackExplorer','downloads')
 
-# if not os.path.isdir(DOWNLOAD_FOLDER):
-#     os.mkdir(DOWNLOAD_FOLDER)
+if not os.path.isdir(DOWNLOAD_FOLDER):
+    os.mkdir(DOWNLOAD_FOLDER)
 
 #Connect the app
 app = Flask(__name__, static_url_path='/static')
@@ -242,6 +242,10 @@ def compare_models():
     grid_columns = [value for value in columns1 if value in columns2]
     grid1_df = grid1_df[grid_columns]
     grid2_df = grid2_df[grid_columns]
+
+    # make sure noL3 isn't an issue when joining.
+    grid1_df['path'] = grid1_df['path'].apply(lambda x: x.replace('_noL3', ''))
+    grid2_df['path'] = grid2_df['path'].apply(lambda x: x.replace('_noL3', ''))
 
     # merge the data frames
     grid_df = pd.merge(grid1_df, grid2_df, how='inner', on=join, suffixes=('_1', '_2'))
