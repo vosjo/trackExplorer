@@ -110,8 +110,10 @@ def read_history(objectname, return_profiles=False):
     fields_data = []
 
     if not 'lg_rlof_mdot_1' in all_columns and 'lg_mstar_dot_1' in all_columns and 'lg_wind_mdot_1' in all_columns:
+        lg_rlof_mdot_1 = np.log10(10**data['lg_mstar_dot_1'] - 10**data['lg_wind_mdot_1'])
+        lg_rlof_mdot_1 = np.where(np.isinf(lg_rlof_mdot_1), -99, lg_rlof_mdot_1)
         fields.append('lg_rlof_mdot_1')
-        fields_data.append(np.log10(10**data['lg_mstar_dot_1'] - 10**data['lg_wind_mdot_1']))
+        fields_data.append(lg_rlof_mdot_1)
 
     if not 'effective_T' in all_columns and 'log_Teff' in all_columns:
         fields.append('effective_T')
