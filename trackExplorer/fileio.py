@@ -32,7 +32,7 @@ def read_hdf5(filename):
                 res[name] = read_rec(grp)
             else:
                 # in case of dataset, read the value
-                res[name] = grp.value
+                res[name] = grp[()]
 
         # -- read all the attributes
         for name, atr in hdf.attrs.items():

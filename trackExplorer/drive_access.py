@@ -20,15 +20,20 @@ SCOPES = ['https://www.googleapis.com/auth/drive']
 
 SERVICE_ACCOUNT_FILE = 'google-credentials.json'
 
-credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-
-
-service = build('drive', 'v3', credentials=credentials)
-
-
+credentials = None
+service = None
 driveId = None
 grid_list = None
+
+
+def get_service():
+    global credentials, service
+    if credentials is None:
+        credentials = service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    # Build a fresh service each time to avoid stale SSL connections
+    service = build('drive', 'v3', credentials=credentials)
+    return service
 
 
 def request_from_drive(q):
@@ -40,7 +45,7 @@ def request_from_drive(q):
     @return: the id of the first returned file/folder or pd.NA if nothing found
     """
     try:
-        query_res = service.files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True,
+        query_res = get_service().files().list(q=q, driveId=driveId, includeItemsFromAllDrives=True,
                                          supportsAllDrives=True, corpora='drive').execute()
         result = query_res['files'][0]['id']
         print(q, '\n--> Success')
@@ -69,16 +74,20 @@ def get_drive_IDs(model):
     return base_folder_id, model_folder_id, summary_file_id
 
 
+def _get_drive_id():
+    global driveId
+    driveId = None
+    all_drives = get_service().drives().list().execute()
+    for drive in all_drives['drives']:
+        if drive['name'] == 'MESA models':
+            driveId = drive['id']
+
+
 def update_grid_list(force=False):
     
     global grid_list, driveId
 
-    # get the drive Id, needs to be done always
-    driveId = None
-    all_drives = service.drives().list().execute()
-    for drive in all_drives['drives']:
-        if drive['name'] == 'MESA models':
-            driveId = drive['id']
+    _get_drive_id()
 
     if os.path.isfile('grid_list.csv') and not force:
         grid_list = pd.read_csv('grid_list.csv')
@@ -92,16 +101,16 @@ def update_grid_list(force=False):
         print("No local grid list found.")
     
     # get trackExplorer folder Id
-    folders = service.files().list(q = "mimeType = 'application/vnd.google-apps.folder' and name = 'trackExplorer'", 
+    folders = get_service().files().list(q = "mimeType = 'application/vnd.google-apps.folder' and name = 'trackExplorer'", 
                                    driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True, corpora='drive').execute()
     folder_id = folders['files'][0]['id']
     
     # get the grid list fileId
-    files = service.files().list(q = "'{}' in parents and name = 'Model_grid_info'".format(folder_id),
+    files = get_service().files().list(q = "'{}' in parents and name = 'Model_grid_info'".format(folder_id),
                                 driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True, corpora='drive').execute() 
     file_id = files['files'][0]['id']
 
-    request = service.files().export_media(fileId=file_id, mimeType='text/csv')
+    request = get_service().files().export_media(fileId=file_id, mimeType='text/csv')
     fh = io.FileIO('grid_list.csv', 'wb')
     downloader = MediaIoBaseDownload(fh, request)
     done = False
@@ -135,7 +144,7 @@ def get_summary_file(gridname):
     else:
         file_id = grid_list['summary_file_id'][grid_list['name'] == gridname].iloc[0]
 
-        request = service.files().get_media(fileId=file_id)
+        request = get_service().files().get_media(fileId=file_id)
         with tempfile.NamedTemporaryFile() as temp:
             downloader = MediaIoBaseDownload(temp, request)
             done = False
@@ -168,7 +177,7 @@ def get_track(gridname, filename, folder_name=None, model_folder_name=None, save
 
         # get the fileId of the h5 file
         print(folder_id, filename)
-        files = service.files().list(q="'{}' in parents and name = '{}'".format(folder_id, filename),
+        files = get_service().files().list(q="'{}' in parents and name = '{}'".format(folder_id, filename),
                                      driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                      corpora='drive').execute()
 
@@ -176,7 +185,7 @@ def get_track(gridname, filename, folder_name=None, model_folder_name=None, save
             print("File {} not found in folder {}".format(filename, folder_id))
             print("Searching in whole drive ...")
 
-            files = service.files().list(q="name = '{}'".format(filename),
+            files = get_service().files().list(q="name = '{}'".format(filename),
                                      driveId=driveId, includeItemsFromAllDrives=True, supportsAllDrives=True,
                                      corpora='drive').execute()
 
@@ -189,7 +198,7 @@ def get_track(gridname, filename, folder_name=None, model_folder_name=None, save
 
         file_id = files['files'][0]['id']
 
-        request = service.files().get_media(fileId=file_id)
+        request = get_service().files().get_media(fileId=file_id)
 
         if save_filename is None:
             with tempfile.NamedTemporaryFile() as temp:
