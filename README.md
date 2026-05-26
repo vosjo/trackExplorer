@@ -1,3 +1,13 @@
+---
+title: TrackExplorer
+emoji: 📊
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Track Explorer
 
 Track explorer is a small web app that can be used to easily analyse a grid of MESA models. It is written in python
