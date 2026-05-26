@@ -1,0 +1,26 @@
+name: Sync to Hugging Face Hub
+
+on:
+  push:
+    branches: [main, master] # Triggers on whichever branch name your repository uses
+
+  # Allows you to manually trigger the sync from the Actions tab if needed
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Hugging Face Space
+        uses: huggingface/hub-sync@v0.1.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: vosjo/track-explorer
+          hf_token: ${{ secrets.HF_TOKEN }}
+          repo_type: space
+          space_sdk: docker
