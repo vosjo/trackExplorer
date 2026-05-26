@@ -10,7 +10,8 @@ import urllib
 from bokeh.models import ColumnDataSource, Select
 from bokeh.embed import components
 from bokeh.layouts import layout, gridplot, Spacer, column
-from bokeh.models.widgets import Panel, Tabs, Div
+from bokeh.models.widgets import Div
+from bokeh.models import TabPanel, Tabs
 
 # added try catch to allow local running of the code without heroku
 try:
@@ -211,8 +212,8 @@ def homepage():
     table_header = Div(text="<h2>Selected Model</h2>", height=40, sizing_mode="stretch_width")
     table_button = layout([[table_header], [table], [Spacer(width=10, height=20)], [button], [dl_button]])
 
-    tab1 = Panel(child=summary_controls, title="Grid summary")
-    tab2 = Panel(child=cm_plot, title="Gaia Color-Magnitude")
+    tab1 = TabPanel(child=summary_controls, title="Grid summary")
+    tab2 = TabPanel(child=cm_plot, title="Gaia Color-Magnitude")
     tab_plot = Tabs(tabs=[tab1, tab2])
 
     summary_layout = layout([[tab_plot, Spacer(width=40, height=10), table_button]])

@@ -1,10 +1,10 @@
 import itertools
 
 from bokeh import models as mpl
-from bokeh.models import CustomJS, Select, Button, CheckboxGroup, TableColumn, StringFormatter, DataTable, CDSView, BooleanFilter
+from bokeh.models import CustomJS, Select, Button, CheckboxGroup, TableColumn, StringFormatter, DataTable, CDSView, BooleanFilter, AllIndices
 from bokeh.transform import linear_cmap, factor_cmap, factor_mark, transform
 from bokeh.plotting import figure
-from bokeh.layouts import gridplot, row, column, layout, widgetbox, Spacer
+from bokeh.layouts import gridplot, row, column, layout, Spacer
 from bokeh.palettes import Category10
 
 from pathlib import Path
@@ -155,8 +155,8 @@ def make_summary_controls(source, history_source, p1, p2, pars_dict, select_opti
 
 
     # create sumary plots
-    # controls1 = widgetbox(x1, y1, width=300)
-    # controls2 = widgetbox(x2, y2, width=300)
+    # controls1 = column(x1, y1, width=300)
+    # controls2 = column(x2, y2, width=300)
     # controls = column([controls1, controls2, button])
 
     controls = column([row([x1, y1, x2, y2]), row([z1, z2])])
@@ -202,12 +202,12 @@ def make_Gaia_CM_diagram(source, table_source):
     # Left Figure
 
     booleans = [True if val != 0 else False for val in source.data['G_HeCoreBurning']]
-    view1 = CDSView(source=source, filters=[BooleanFilter(booleans)])
+    view1 = CDSView(filter=BooleanFilter(booleans))
 
     p1 = figure(x_axis_label='Gaia BP-RP', y_axis_label='Gaia G mag', active_drag='box_select',
                 tools=tools, tooltips=basic_tooltip, title="HeCoreBurning", y_range=(6,-5))
 
-    p1.circle(hiparcos['bp_rp'], hiparcos['M_g'], size=1, color='gray')
+    p1.scatter(hiparcos['bp_rp'], hiparcos['M_g'], size=1, color='gray')
 
     p1.scatter(x="BP-RP_HeCoreBurning", y="G_HeCoreBurning", source=source, fill_alpha=0.4,
                size=transform('z1', size_transform),
@@ -218,12 +218,12 @@ def make_Gaia_CM_diagram(source, table_source):
     # Right Figure
 
     booleans = [True if val != 0 else False for val in source.data['G_MLstart']]
-    view2 = CDSView(source=source, filters=[BooleanFilter(booleans)])
+    view2 = CDSView(filter=BooleanFilter(booleans))
 
     p2 = figure(x_axis_label='Gaia BP-RP', y_axis_label='Gaia G mag', active_drag='box_select',
                 tools=tools, tooltips=basic_tooltip, title="ML start", y_range=(6,-5))
 
-    p2.circle(hiparcos['bp_rp'], hiparcos['M_g'], size=1, color='gray')
+    p2.scatter(hiparcos['bp_rp'], hiparcos['M_g'], size=1, color='gray')
 
     p2.scatter(x="BP-RP_MLstart", y="G_MLstart", source=source, fill_alpha=0.4,
                size=transform('z1', size_transform),
@@ -283,17 +283,17 @@ def make_HR_diagram(source):
             """
     size_transform = mpl.CustomJSTransform(v_func=v_func)
 
-    p = figure(plot_height=500, plot_width=500, tools=tools, title='HR diagram',
+    p = figure(height=500, width=500, tools=tools, title='HR diagram',
                x_axis_label=xpar, y_axis_label=ypar, tooltips=basic_tooltip)
     p.title.align = 'center'
     p.outline_line_width = 3
     p.outline_line_alpha = 0.3
 
     p.line(xpar, ypar, color='blue', source=source, legend_label='primary')
-    p.circle(xpar, ypar, color='blue', source=source, size=transform('log_dt', size_transform), legend_label='primary')
+    p.scatter(xpar, ypar, color='blue', source=source, size=transform('log_dt', size_transform), legend_label='primary')
 
     p.line(xpar+'_2', ypar+'_2', color='red', source=source, legend_label='secondary')
-    p.circle(xpar+'_2', ypar+'_2', color='red', source=source, size=0, legend_label='secondary')
+    p.scatter(xpar+'_2', ypar+'_2', color='red', source=source, size=0, legend_label='secondary')
 
     p.patch([4.30, 4.60, 4.60, 4.30], [5, 5, 6.5, 6.5], alpha=0.3, color='blue', line_width=0)
 
@@ -310,17 +310,17 @@ def make_center_track(source):
     tools = "pan,wheel_zoom,box_zoom,box_select,hover,reset,crosshair"
     basic_tooltip = [("log_Rho_c", "$x{0.[000]}"), ("log_T_c", "$y{0.[000]}")]
 
-    p = figure(plot_height=500, plot_width=500, tools=tools, title='Central properties',
+    p = figure(height=500, width=500, tools=tools, title='Central properties',
                    x_axis_label='log_center_Rho', y_axis_label='log_center_T', tooltips=basic_tooltip)
     p.title.align = 'center'
     p.outline_line_width = 3
     p.outline_line_alpha = 0.3
 
     p.line('log_center_Rho', 'log_center_T', color='blue', source=source, legend_label='primary')
-    p.circle('log_center_Rho', 'log_center_T', color='blue', source=source, size=0, legend_label='primary')
+    p.scatter('log_center_Rho', 'log_center_T', color='blue', source=source, size=0, legend_label='primary')
 
     p.line('log_center_Rho_2', 'log_center_T_2', color='red', source=source, legend_label='secondary')
-    p.circle('log_center_Rho_2', 'log_center_T_2', color='red', source=source, size=0, legend_label='secondary')
+    p.scatter('log_center_Rho_2', 'log_center_T_2', color='red', source=source, size=0, legend_label='secondary')
 
     p.line(HIgnition['rho'], HeIgnition['T'], line_dash='dotted', color='black')
     p.line(HeIgnition['rho'], HeIgnition['T'], line_dash='dotted', color='black')
@@ -328,12 +328,12 @@ def make_center_track(source):
     p.line(edegeneracy['rho'], edegeneracy['T'], line_dash='dotted', color='black')
 
     h_label = mpl.Label(x=HIgnition['rho'][0], y=HeIgnition['T'][0], text='H',
-                       render_mode='css', text_font_size='10pt')
-    he_label = mpl.Label(x=HeIgnition['rho'][0], y=HeIgnition['T'][0], text='He', render_mode='css',
+                       text_font_size='10pt')
+    he_label = mpl.Label(x=HeIgnition['rho'][0], y=HeIgnition['T'][0], text='He',
                         text_font_size='10pt', x_offset=5, y_offset=-5)
-    o_label = mpl.Label(x=OIgnition['rho'][0], y=OIgnition['T'][0], text='O', render_mode='css',
+    o_label = mpl.Label(x=OIgnition['rho'][0], y=OIgnition['T'][0], text='O',
                        text_font_size='10pt', x_offset=5, y_offset=-5)
-    e_label = mpl.Label(x=edegeneracy['rho'][0], y=edegeneracy['T'][0], text='e-deg.', render_mode='css',
+    e_label = mpl.Label(x=edegeneracy['rho'][0], y=edegeneracy['T'][0], text='e-deg.',
                        text_font_size='10pt', x_offset=5, y_offset=-5)
 
     p.add_layout(h_label)
@@ -371,15 +371,18 @@ def make_history_plots(sources, pars_dict, labels=None):
         basic_tooltip = [("(x,y)", "($x{0.[00000]}, $y{0.[00000     ]})")]
         tools = "pan,wheel_zoom,box_zoom,box_select,hover,reset,crosshair"
         
-        p = figure(plot_height=250, plot_width=500, tooltips=basic_tooltip, tools=tools, 
-                   x_axis_label=pars_dict['x'], y_axis_label=pars_dict[ypar], x_range=None)
+        kwargs = dict(height=250, width=500, tooltips=basic_tooltip, tools=tools,
+                      x_axis_label=pars_dict['x'], y_axis_label=pars_dict[ypar])
+        if x_range is not None:
+            kwargs['x_range'] = x_range
+        p = figure(**kwargs)
 
         for source, color, label in zip(sources, colors, labels):
             if len(sources) > 1:
                 p.line('x', ypar, source=source, color=color, legend_label=label)
             else:
                 p.line('x', ypar, source=source, color=color)
-            p.circle('x', ypar, source=source, size=0)
+            p.scatter('x', ypar, source=source, size=0)
         
         return p
 
@@ -448,10 +451,10 @@ def make_history_controls(track_sources, pars_dict, select_options, figures):
         
     # update_button = Button(label="Update", button_type="success")
     
-    controls_c1 = widgetbox(controls['y1'], controls['y4'])
-    controls_c2 = widgetbox(controls['y2'], controls['y5'])
-    controls_c3 = widgetbox(controls['y3'], controls['y6'])
-    controls_c4 = widgetbox(controls['x'])
+    controls_c1 = column(controls['y1'], controls['y4'])
+    controls_c2 = column(controls['y2'], controls['y5'])
+    controls_c3 = column(controls['y3'], controls['y6'])
+    controls_c4 = column(controls['x'])
     
     
     controls_history = row([Spacer(width=40, height=10), controls_c1, controls_c2, controls_c3, controls_c4])
